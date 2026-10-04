@@ -112,7 +112,8 @@ function isiKodeAnak() {
     <p class="ket" style="margin:6px 0">${status}${s.terakhir ? ` · terakhir ${jamPendek(s.terakhir)}` : ""}</p>
     <p class="ket" style="margin:0 0 8px">Kemajuan otomatis tersimpan online. Agar terlihat di <b>HP orang tua</b>: buka game di HP itu, pilih <b>"Sudah punya Kode Anak?"</b>, lalu ketik kode di atas (cukup sekali). Jaga kode ini seperti kata sandi.</p>
     <div class="baris-set"><button class="tbl tbl-biru tbl-kecil" id="s-sekarang">🔄 Perbarui sekarang</button>${S.peran === "ortu" ? '<button class="tbl tbl-putih tbl-kecil" id="s-putus">Matikan di perangkat ini</button>' : ""}</div>
-    <div class="baris-set"><span class="ket">Hapus kemajuan dari server (kemajuan di perangkat tetap ada)</span><button class="tbl tbl-merah tbl-kecil" id="s-hapus">Hapus dari server</button></div>`;
+    <div class="baris-set"><span class="ket">Hapus kemajuan dari server (kemajuan di perangkat tetap ada)</span><button class="tbl tbl-merah tbl-kecil" id="s-hapus">Hapus dari server</button></div>
+    <details class="sambung-lain"><summary>🔗 Masukkan Kode Anak lain</summary><p class="ket" style="margin:6px 0 0">Pakai ini bila perangkat ini harus memantau atau melanjutkan kemajuan anak dengan kode lain (mis. kode dari HP anak). Kode perangkat ini yang belum berisi kemajuan akan dihapus.</p>${isianSambung}</details>`;
 }
 function segarkanKartuSinkron() { const k = document.getElementById("kartu-sinkron"); if (k) { k.innerHTML = isiKartuSinkron(); pasangKartuSinkron(k); } }
 function pasangKartuSinkron(k) {

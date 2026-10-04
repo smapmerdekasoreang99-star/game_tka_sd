@@ -425,3 +425,5 @@ canvas#konfeti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-e
 .sambung-kode .isian-teks { max-width: 140px; min-height: 44px; text-transform: uppercase; letter-spacing: .08em; text-align: center; }
 .tabel-laporan td.posisi small { display: block; font-size: 11px; font-weight: 600; color: var(--tinta-2); }
 .banner-ortu { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; background: var(--biru-muda); color: var(--biru-tua); }
+.sambung-lain { margin-top: 10px; border-top: 1px solid var(--garis); padding-top: 10px; }
+.sambung-lain summary { cursor: pointer; font-weight: 800; color: var(--biru-tua); }
