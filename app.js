@@ -132,9 +132,9 @@ function lSambut() {
       <span class="lbl-isian">Pilih teman petualanganmu</span><div class="pilih-avatar" id="av">${AVATAR.map(a => `<button type="button" aria-pressed="${a === pilihAv}" data-av="${a}">${a}</button>`).join("")}</div>
       <label class="lbl-isian" for="in-tka">Tanggal TKA <span class="ket">(boleh diisi nanti oleh orang tua)</span></label><input id="in-tka" type="date" class="isian-teks" value="${S.tka}">
       <button class="tbl tbl-utama tbl-lebar" id="mulai" style="margin-top:20px">Mulai Petualangan 🚀</button>
-      <button class="tbl tbl-putih tbl-lebar" id="punya-kode" style="margin-top:10px">☁️ Sudah punya kode sinkron?</button></div>`;
+      <button class="tbl tbl-putih tbl-lebar" id="punya-kode" style="margin-top:10px">☁️ Sudah punya Kode Anak?</button></div>`;
   layar.querySelector("#punya-kode").addEventListener("click", () => { bunyi.klik();
-    const l = dialog(`<div style="font-size:48px">☁️</div><h2>Sambungkan kemajuan</h2><p class="ket">Ketik kode sinkron dari perangkat lain (lihat di <b>Orang Tua → Pengaturan</b>).</p><input class="isian-teks" id="kode-sambut" maxlength="9" autocomplete="off" placeholder="XXXX-XXXX" style="text-align:center;letter-spacing:.1em">`,
+    const l = dialog(`<div style="font-size:48px">☁️</div><h2>Masukkan Kode Anak</h2><p class="ket">Ketik Kode Anak dari HP anak (lihat di HP anak: <b>Orang Tua → Pengaturan → Kode Anak</b>).</p><input class="isian-teks" id="kode-sambut" maxlength="9" autocomplete="off" placeholder="XXXX-XXXX" style="text-align:center;letter-spacing:.1em">`,
       [["Sambungkan", "tbl-utama", () => sambungkanKode(kode)], ["Batal", "tbl-putih", null]]);
     let kode = ""; const i = l.querySelector("#kode-sambut"); i.addEventListener("input", e => (kode = e.target.value)); i.addEventListener("keydown", e => { if (e.key === "Enter") l.querySelector("button[data-i='0']").click(); }); i.focus(); });
   layar.querySelector("#av").addEventListener("click", e => { const b = e.target.closest("[data-av]"); if (!b) return; pilihAv = b.dataset.av; bunyi.klik(); layar.querySelectorAll("[data-av]").forEach(x => x.setAttribute("aria-pressed", x === b)); });
@@ -401,8 +401,8 @@ function ortuDasbor(el) {
   const lemah = MISI.filter(m => dataMisi(m.id).total >= 10).sort((a, b) => dataMisi(a.id).benar / dataMisi(a.id).total - dataMisi(b.id).benar / dataMisi(b.id).total).slice(0, 3);
   el.innerHTML = `<div class="kartu"><div class="statistik"><div><b>${fmt(tot)}</b>soal dikerjakan</div><div><b>${tot ? Math.round(ben / tot * 100) : 0}%</b>jawaban benar</div><div><b>${minggu}</b>level minggu ini</div></div>
       ${lemah.length ? `<p class="ket" style="margin:12px 0 0">Perlu latihan tambahan: <b>${lemah.map(m => m.judul).join(", ")}</b> (akurasi terendah).</p>` : ""}
-      ${S.sinkron?.kode ? `<p class="ket" style="margin:12px 0 0">☁️ Tersinkron antarperangkat (kode <b>${kodeTampil(S.sinkron.kode)}</b>)${S.sinkron.terakhir ? `, terakhir ${jamPendek(S.sinkron.terakhir)}` : ""}${S.sinkron.tertunda ? " · ada perubahan yang belum terkirim" : ""}.</p>`
-        : `<p class="ket" style="margin:12px 0 0">📱 Data ini tersimpan di perangkat dan peramban ini saja. Supaya kemajuan dari HP anak ikut tampil di sini, aktifkan <b>Pengaturan → Sinkron antarperangkat</b>.</p>`}</div>
+      ${S.sinkron?.kode ? `<p class="ket" style="margin:12px 0 0">☁️ Tersimpan online (Kode Anak <b>${kodeTampil(S.sinkron.kode)}</b>)${S.sinkron.terakhir ? `, terakhir ${jamPendek(S.sinkron.terakhir)}` : ""}${S.sinkron.tertunda ? " · ada perubahan yang belum terkirim" : ""}.</p>`
+        : `<p class="ket" style="margin:12px 0 0">${S.sinkronMati ? "📱 Penyimpanan online dimatikan di perangkat ini; data hanya ada di perangkat ini. Nyalakan lagi di <b>Pengaturan → Kode Anak</b>." : "⏳ Kode Anak dibuat otomatis begitu perangkat ini tersambung internet. Untuk melihat kemajuan dari HP anak di sini, pilih <b>Pengaturan → Sudah punya Kode Anak?</b>."}</p>`}</div>
     <div class="kartu"><h3>Aktivitas terakhir</h3>${akhir ? `<ul class="daftar-aktivitas">${akhir}</ul>` : '<p class="ket" style="margin:6px 0 0">Belum ada level yang diselesaikan di perangkat ini.</p>'}</div>
     <div class="kartu"><h3>Kemajuan per misi</h3><p class="ket" style="margin:4px 0 8px"><b>Sedang di</b> = level yang sedang dikerjakan anak · <b>Lulus</b> = banyak level yang sudah lulus.</p><div style="overflow-x:auto"><table class="tabel-laporan"><thead><tr><th>Misi</th><th>Sedang di</th><th>Lulus</th><th>⭐</th><th>Benar</th></tr></thead><tbody>${baris}</tbody></table></div></div>`;
 }
