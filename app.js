@@ -158,7 +158,8 @@ function lBeranda() {
   const sudahHarian = S.harian.tgl === hariIni() && S.harian.selesai;
   const terakhir = S.log.length ? S.log[S.log.length - 1] : null, mTer = terakhir && cariMisi(terakhir.m);
   const lanjut = mTer ? (() => { const L = Math.min(10, dataMisi(mTer.id).lv + 1); return misiSelesai(mTer.id) ? "" : `<button class="kartu misi" data-ke="jalur" data-arg="${mTer.id}" style="margin:0"><div class="ikon">${mTer.ikon}</div><div class="tengah"><div class="status">LANJUTKAN</div><h3>${mTer.judul}</h3><div class="status">Level ${L} · ${TINGKAT[L][0]}</div></div><div class="kanan" style="font-size:28px">▶️</div></button>`; })() : "";
-  layar.innerHTML = `<div class="hitung-mundur">${hm}<div class="piala-mini">${pialaSVG(S.piala.raksasa ? "raksasa" : "kosong", S.piala.raksasa ? "👑" : "")}</div></div>
+  layar.innerHTML = `${S.peran === "ortu" ? `<div class="kartu banner-ortu"><div>👀 <b>HP orang tua</b> — hanya untuk memantau. Latihan dikerjakan di HP anak.</div><button class="tbl tbl-biru tbl-kecil" data-ke="ortu">Buka Dasbor Ortu</button></div>` : ""}
+    <div class="hitung-mundur">${hm}<div class="piala-mini">${pialaSVG(S.piala.raksasa ? "raksasa" : "kosong", S.piala.raksasa ? "👑" : "")}</div></div>
     ${lanjut}
     <button class="kartu harian ${sudahHarian ? "sudah" : ""}" id="harian" style="width:100%;text-align:left"><div class="ikon-besar">${sudahHarian ? "✅" : "🎁"}</div><div><h3>${sudahHarian ? "Tantangan Harian selesai!" : "Tantangan Harian"}</h3><div class="ket">${sudahHarian ? "Kembali lagi besok untuk hadiah berikutnya." : "${SOAL_HARIAN} soal campuran · hadiah <b>+50 💰</b> dan api semangat 🔥"}</div></div></button>
     <h2 class="judul-bagian">🗺️ Pilih Pulau</h2>
@@ -204,8 +205,12 @@ function ambilSoal(id, L) {
   (S.riwayat[id] ||= []).push(h); if (S.riwayat[id].length > RIWAYAT_MAKS) S.riwayat[id].splice(0, S.riwayat[id].length - RIWAYAT_MAKS);
   return s;
 }
-function mulaiLevel(id, L, coba = false) { const a = atur(); M = { misi: id, L, coba, i: 0, n: a.soal, toleransi: a.toleransi, ulang: a.ulang, salah: 0, tanda: [], petunjuk: false, harian: false }; soalBerikut(); }
-function mulaiHarian() {
+/* Latihan: hanya di HP anak dan harus tersambung ke database (lihat bolehLatihan di sinkron.js).
+   Uji coba orang tua (coba) tidak memerlukan keduanya karena tidak dihitung. */
+async function mulaiLevel(id, L, coba = false) { if (coba) return mulaiLevelLangsung(id, L, true); if (await bolehLatihan(() => mulaiLevel(id, L))) mulaiLevelLangsung(id, L); }
+async function mulaiHarian() { if (await bolehLatihan(() => mulaiHarian())) mulaiHarianLangsung(); }
+function mulaiLevelLangsung(id, L, coba = false) { const a = atur(); M = { misi: id, L, coba, i: 0, n: a.soal, toleransi: a.toleransi, ulang: a.ulang, salah: 0, tanda: [], petunjuk: false, harian: false }; soalBerikut(); }
+function mulaiHarianLangsung() {
   const buka = MISI.filter(m => !misiSelesai(m.id)), sumber = buka.length >= 3 ? buka : MISI;
   const antrian = Array.from({ length: SOAL_HARIAN }, () => { const m = acakDari(sumber), d = dataMisi(m.id); return { misi: m.id, L: Math.max(1, Math.min(10, d.lv + 1)) }; });
   M = { harian: true, antrian, i: 0, n: SOAL_HARIAN, toleransi: SOAL_HARIAN, ulang: false, salah: 0, tanda: [], petunjuk: false }; soalBerikut();
@@ -507,4 +512,5 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 
 /* ================= Mulai ================= */
 tampil(S.profil ? "beranda" : "sambut");
+if (S.profil && S.peran === "ortu") tampil("ortu");   // HP orang tua langsung ke halaman Orang Tua (tetap dengan PIN)
 setTimeout(() => sinkronkan(), 800);

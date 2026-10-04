@@ -7,15 +7,15 @@
 "use strict";
 
 const SINKRON_DB = { url: "https://jzxcnfetpjkltjjbglxz.supabase.co", key: "sb_publishable_9pl5IOJl-Vx0KEnHtCs3nA_ioZOkacq" };
-const BAGIAN_LOKAL = ["riwayat", "suara", "sinkron", "sinkronMati"];   // tetap di perangkat ini, tidak dikirim
+const BAGIAN_LOKAL = ["riwayat", "suara", "sinkron", "sinkronMati", "peran"];   // peran: "anak" (bawaan) atau "ortu"   // tetap di perangkat ini, tidak dikirim
 let sedangSinkron = false, jedaSinkron = null;
 
 async function rpcPts(fn, arg) {
-  let r;
+  let r; const henti = new AbortController(), batas = setTimeout(() => henti.abort(), 12000);
   try {
-    r = await fetch(`${SINKRON_DB.url}/rest/v1/rpc/${fn}`, { method: "POST",
+    r = await fetch(`${SINKRON_DB.url}/rest/v1/rpc/${fn}`, { method: "POST", signal: henti.signal,
       headers: { "Content-Type": "application/json", apikey: SINKRON_DB.key, Authorization: "Bearer " + SINKRON_DB.key }, body: JSON.stringify(arg) });
-  } catch (e) { throw new Error("Tidak tersambung ke internet."); }
+  } catch (e) { throw new Error("Tidak tersambung ke internet."); } finally { clearTimeout(batas); }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(String(j.message || "Server menolak permintaan.").replace("Kode sinkron", "Kode Anak"));
   return j;
@@ -98,7 +98,9 @@ window.addEventListener("online", () => sinkronkan());
 const jamPendek = t => { const d = new Date(t); return `${tglIndo(hariIni(d))}, ${String(d.getHours()).padStart(2, "0")}.${String(d.getMinutes()).padStart(2, "0")}`; };
 const isianSambung = `<div class="baris-set" style="margin-top:8px"><label for="s-kode"><b>Sudah punya Kode Anak?</b><div class="ket">Ketik kode dari HP anak untuk menyambungkan perangkat ini</div></label>
       <span class="sambung-kode"><input id="s-kode" class="isian-teks" maxlength="9" autocomplete="off" placeholder="XXXX-XXXX"><button class="tbl tbl-putih tbl-kecil" id="s-sambung">Sambungkan</button></span></div>`;
-function isiKartuSinkron() {
+const barisPeran = () => `<div class="baris-set"><span><b>Perangkat ini</b><div class="ket">${S.peran === "ortu" ? "👨‍👩‍👧 HP orang tua — hanya memantau" : "👦 HP anak — untuk latihan (harus tersambung internet)"}</div></span><button class="tbl tbl-putih tbl-kecil" id="s-peran">Ubah</button></div>`;
+function isiKartuSinkron() { return barisPeran() + isiKodeAnak(); }
+function isiKodeAnak() {
   const s = S.sinkron;
   if (!s?.kode && S.sinkronMati) return `<h3>☁️ Kode Anak</h3><p class="ket">Penyimpanan online <b>dimatikan</b> di perangkat ini. Kemajuan hanya tersimpan di perangkat ini.</p>
     <button class="tbl tbl-biru tbl-lebar" id="s-aktif">Nyalakan lagi</button>${isianSambung}`;
@@ -109,12 +111,13 @@ function isiKartuSinkron() {
     <div class="kode-sinkron"><span class="ket">Kode Anak</span><b id="s-teks">${kodeTampil(s.kode)}</b><button class="tbl tbl-putih tbl-kecil" id="s-salin">Salin</button></div>
     <p class="ket" style="margin:6px 0">${status}${s.terakhir ? ` · terakhir ${jamPendek(s.terakhir)}` : ""}</p>
     <p class="ket" style="margin:0 0 8px">Kemajuan otomatis tersimpan online. Agar terlihat di <b>HP orang tua</b>: buka game di HP itu, pilih <b>"Sudah punya Kode Anak?"</b>, lalu ketik kode di atas (cukup sekali). Jaga kode ini seperti kata sandi.</p>
-    <div class="baris-set"><button class="tbl tbl-biru tbl-kecil" id="s-sekarang">🔄 Perbarui sekarang</button><button class="tbl tbl-putih tbl-kecil" id="s-putus">Matikan di perangkat ini</button></div>
+    <div class="baris-set"><button class="tbl tbl-biru tbl-kecil" id="s-sekarang">🔄 Perbarui sekarang</button>${S.peran === "ortu" ? '<button class="tbl tbl-putih tbl-kecil" id="s-putus">Matikan di perangkat ini</button>' : ""}</div>
     <div class="baris-set"><span class="ket">Hapus kemajuan dari server (kemajuan di perangkat tetap ada)</span><button class="tbl tbl-merah tbl-kecil" id="s-hapus">Hapus dari server</button></div>`;
 }
 function segarkanKartuSinkron() { const k = document.getElementById("kartu-sinkron"); if (k) { k.innerHTML = isiKartuSinkron(); pasangKartuSinkron(k); } }
 function pasangKartuSinkron(k) {
   const $ = q => k.querySelector(q), sibuk = (b, ya) => { if (b) { b.disabled = ya; b.style.opacity = ya ? 0.6 : ""; } };
+  $("#s-peran")?.addEventListener("click", () => pilihPeran(() => segarkanKartuSinkron()));
   $("#s-aktif")?.addEventListener("click", async e => { sibuk(e.target, true); delete S.sinkronMati; simpanData(false); await sinkronkan({ diam: false }); segarkanKartuSinkron(); });
   $("#s-sambung")?.addEventListener("click", e => sambungkanKode($("#s-kode").value, e.target));
   $("#s-kode")?.addEventListener("keydown", e => { if (e.key === "Enter") $("#s-sambung").click(); });
@@ -144,10 +147,42 @@ async function sambungkanKode(teks, tombol) {
     if (kodeLama) rpcPts("pts_hapus", { p_kode: kodeLama }).catch(() => {});   // kode kosong milik perangkat ini tidak dipakai lagi
     tampilPesan(`☁️ Tersambung dengan kemajuan ${namaSrv}`, 3500);
     if (gabung) sinkronkan();
-    if (layarKini === "ortu") { izinOrtu = true; tampil("ortu"); } else tampil("beranda");
+    const dariOrtu = layarKini === "ortu";
+    pilihPeran(() => { if (S.peran === "ortu") { tampil("beranda"); izinOrtu = dariOrtu; tabOrtu = "dasbor"; tampil("ortu"); } else tampil("beranda"); });
   };
   if (!adaKemajuan(S)) return pakai(false);
   if (S.profil.nama.trim().toLowerCase() === namaSrv.trim().toLowerCase()) return pakai(true);
   dialog(`<div style="font-size:48px">⚠️</div><h2>Nama berbeda</h2><p class="ket">Kode Anak ini berisi kemajuan <b>${esc(namaSrv)}</b>, sedangkan perangkat ini berisi kemajuan <b>${esc(S.profil.nama)}</b>. Bila diteruskan, kemajuan di perangkat ini <b>diganti</b> dengan kemajuan ${esc(namaSrv)}. Unduh cadangan dulu bila perlu.</p>`,
     [[`Ganti dengan ${esc(namaSrv)}`, "tbl-merah", () => pakai(false)], ["Batal", "tbl-putih", null]]);
+}
+
+/* ---------- Peran perangkat & syarat latihan ---------- */
+function pilihPeran(lanjut) {
+  dialog(`<div style="font-size:48px">📱</div><h2>Perangkat ini dipakai oleh siapa?</h2><p class="ket"><b>HP anak</b> dipakai untuk latihan dan harus tersambung internet. <b>HP orang tua</b> hanya untuk memantau perkembangan; latihan tidak bisa dikerjakan di sana.</p>`,
+    [["👦 HP anak — untuk latihan", "tbl-utama", () => { S.peran = "anak"; simpanData(false); lanjut(); }],
+     ["👨‍👩‍👧 HP orang tua — hanya memantau", "tbl-biru", () => { S.peran = "ortu"; simpanData(false); lanjut(); }]]);
+}
+const jeda = ms => new Promise(r => setTimeout(r, ms));
+/* Latihan hanya di HP anak, dan kemajuan harus berhasil tersimpan ke database sebelum mulai.
+   ulangi = fungsi untuk tombol "Coba lagi". */
+async function bolehLatihan(ulangi) {
+  if (S.peran === "ortu") {
+    bunyi.salah();
+    dialog(`<div style="font-size:48px">👀</div><h2>HP orang tua</h2><p class="ket">Perangkat ini disetel sebagai <b>HP orang tua</b> untuk memantau saja. Latihan dikerjakan di HP anak.</p><p class="ket">Ingin mencoba soal? Pakai <b>Orang Tua → Materi &amp; Level Soal → Coba</b> (tidak dihitung sebagai kemajuan anak).</p>`, [["Mengerti", "tbl-utama", null]]);
+    return false;
+  }
+  if (S.sinkronMati) {
+    bunyi.salah();
+    dialog(`<div style="font-size:48px">☁️</div><h2>Penyimpanan online mati</h2><p class="ket">Latihan memerlukan penyimpanan online supaya kemajuan bisa dipantau orang tua. Minta orang tua menyalakannya di <b>Orang Tua → Pengaturan → Kode Anak</b>.</p>`, [["Mengerti", "tbl-utama", null]]);
+    return false;
+  }
+  tampilPesan("☁️ Menyimpan kemajuan…", 15000);
+  for (let i = 0; sedangSinkron && i < 150; i++) await jeda(100);
+  const ok = await sinkronkan();
+  document.querySelectorAll(".pesan").forEach(x => x.remove());
+  if (ok) return true;
+  bunyi.salah();
+  dialog(`<div style="font-size:48px">📶</div><h2>Belum tersambung internet</h2><p class="ket">Latihan memerlukan internet supaya kemajuan langsung tersimpan dan bisa dipantau orang tua. Nyalakan data seluler atau Wi-Fi, lalu coba lagi.</p>${S.sinkron?.galat ? `<p class="ket" style="font-size:13px">(${esc(S.sinkron.galat)})</p>` : ""}`,
+    [["Coba lagi", "tbl-utama", ulangi], ["Tutup", "tbl-putih", null]]);
+  return false;
 }
