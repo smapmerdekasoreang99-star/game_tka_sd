@@ -16,7 +16,7 @@ const SEMANGAT = ["Tidak apa-apa, kita belajar dari kesalahan!", "Hampir! Baca p
 const SARAN_UMUM = "Baca soalnya pelan-pelan. Garis bawahi angka dan kata pentingnya, lalu tulis langkahnya di kertas coretan.";
 
 /* ================= Data tersimpan ================= */
-const bawaan = () => ({ v: 1, profil: null, tka: "", suara: true, koin: 0, api: { n: 0, tgl: "" }, misi: {}, piala: {}, harian: { tgl: "", selesai: false }, riwayat: {}, log: [], atur: { soal: 5, toleransi: 1, ulang: true } });
+const bawaan = () => ({ v: 1, profil: null, tka: "", suara: true, koin: 0, api: { n: 0, tgl: "" }, misi: {}, piala: {}, posTes: {}, harian: { tgl: "", selesai: false }, riwayat: {}, log: [], atur: { soal: 5, toleransi: 1, ulang: true } });
 function muatData() { try { const x = JSON.parse(localStorage.getItem(KUNCI_SIMPAN)); if (x && x.v === 1) return Object.assign(bawaan(), x); } catch (e) { /* kosong */ } return bawaan(); }
 let S = muatData();
 /* Aturan level dari halaman Orang Tua: jumlah soal, batas kesalahan, dan ulangi nomor yang salah */
@@ -26,7 +26,7 @@ let gagalSimpan = false;
 function simpanData(jadwal = true) { try { localStorage.setItem(KUNCI_SIMPAN, JSON.stringify(S)); gagalSimpan = false; if (jadwal && typeof jadwalSinkron === "function") jadwalSinkron(); } catch (e) { gagalSimpan = true; tampilPesan("⚠️ Kemajuan belum bisa disimpan di perangkat ini."); } }
 /* Muat ulang dari penyimpanan supaya tab/halaman yang lama terbuka memakai kemajuan terbaru
    (dan tidak menimpa kemajuan anak dengan data lama). Tidak dilakukan saat sedang mengerjakan soal. */
-function segarkanData() { if (M || gagalSimpan) return false; const baru = muatData(); if (!baru.profil) return false; S = baru; return true; }
+function segarkanData() { if (M || T || gagalSimpan) return false; const baru = muatData(); if (!baru.profil) return false; S = baru; return true; }
 
 const hariIni = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const selisihHari = (a, b) => Math.round((Date.parse(b + "T00:00:00") - Date.parse(a + "T00:00:00")) / 864e5);
@@ -113,7 +113,7 @@ function tampil(nama_, arg) {
   if (nama_ !== "sambut") segarkanData();
   if (nama_ === "ortu" && !izinOrtu) return mintaPin();
   izinOrtu = false; layarKini = nama_; argKini = arg; window.scrollTo(0, 0);
-  ({ sambut: lSambut, beranda: lBeranda, pulau: lPulau, jalur: lJalur, piala: lPiala, ortu: lOrtu }[nama_])(arg);
+  ({ sambut: lSambut, beranda: lBeranda, pulau: lPulau, jalur: lJalur, postes: lPosTes, piala: lPiala, ortu: lOrtu }[nama_])(arg);
 }
 document.addEventListener("click", e => { const b = e.target.closest("[data-ke]"); if (b) { bunyi.klik(); tampil(b.dataset.ke, b.dataset.arg); } });
 function tampilPesan(t, ms = 2600) { document.querySelectorAll(".pesan").forEach(x => x.remove()); const d = document.createElement("div"); d.className = "pesan"; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), ms); }
@@ -178,7 +178,7 @@ function lPulau(pid) {
         ms.map(m => { const d = dataMisi(m.id), L = Math.min(10, d.lv + 1), done = misiSelesai(m.id), emas = S.piala["emas-" + m.id];
           const pips = d.bin.map((b, i) => `<i class="${b ? "b" + b : i === d.lv && !done ? "kini" : ""}">${i + 1}</i>`).join("");
           return `<button class="misi ${done ? "selesai" : ""}" data-ke="jalur" data-arg="${m.id}"><div class="ikon">${m.ikon}${done ? '<span class="centang">✓</span>' : ""}</div><div class="tengah"><h3>${m.judul}</h3><div class="pips">${pips}</div>
-            <div class="status">${done ? `Selesai! ⭐ ${bintangMisi(m.id)}/30${emas ? " · Piala emas!" : " · kumpulkan 30⭐ untuk piala emas"}` : `Level ${L} · ${TINGKAT[L][0]}`}</div></div><div class="kanan">${done ? pialaSVG(emas ? "emas" : "perunggu", m.ikon) : '<span style="font-size:26px">▶️</span>'}</div></button>`; }).join("");
+            <div class="status">${done ? `Selesai! ⭐ ${bintangMisi(m.id)}/30${emas ? " · Piala emas!" : " · kumpulkan 30⭐ untuk piala emas"}` : `Level ${L} · ${TINGKAT[L][0]}`}</div></div><div class="kanan">${done ? pialaSVG(emas ? "emas" : "perunggu", m.ikon) : '<span style="font-size:26px">▶️</span>'}</div></button>`; }).join("") + kartuTesPulau(p);
     }).join("");
 }
 
@@ -376,10 +376,11 @@ function lPiala() {
     <div class="lemari">
       <div class="raksasa">${pialaSVG(S.piala.raksasa ? "raksasa" : "kosong", S.piala.raksasa ? "👑" : "")}<h3>Piala Raksasa Juara TKA</h3><div class="ket">${S.piala.raksasa ? "Diraih " + tglIndo(S.piala.raksasa) : `Selesaikan semua pulau${S.tka ? " sebelum " + tglIndo(S.tka) : " sebelum hari TKA"}`}</div></div>
       <div class="rak"><h3>Piala Pulau</h3><div class="barisan">${PULAU.map(p => `<div class="slot-piala besar">${pialaSVG(S.piala["pulau-" + p.id] ? "emas" : "kosong", S.piala["pulau-" + p.id] ? p.ikon : "")}${p.judul}</div>`).join("")}</div></div>
+      <div class="rak"><h3>📝 Pos Tes</h3><div class="barisan">${POS_TES.map(t => `<div class="slot-piala" title="${judulTes(t)} ${cariPulau(t.pulau).judul}">${pialaSVG(S.piala["tes-" + t.id] ? "perak" : "kosong", S.piala["tes-" + t.id] ? "📝" : "")}${t.pulau === "mtk" ? "MTK" : "B. Indo"} ${t.no}</div>`).join("")}</div></div>
       ${POS.map(p => `<div class="rak"><h3>${p.ikon} ${p.pulau === "mtk" ? `Pos ${p.no} · ` : ""}${p.judul}</h3><div class="barisan"><div class="slot-piala">${pialaSVG(S.piala["pos-" + p.id] ? "perak" : "kosong", S.piala["pos-" + p.id] ? p.ikon : "")}Piala Pos</div>
         ${MISI.filter(m => m.pos === p.id).map(m => `<div class="slot-piala" title="${m.judul}">${pialaSVG(S.piala["emas-" + m.id] ? "emas" : S.piala["misi-" + m.id] ? "perunggu" : "kosong", S.piala["misi-" + m.id] ? m.ikon : "")}${m.judul.split(/[ ,&]/)[0]}</div>`).join("")}</div></div>`).join("")}
     </div>
-    <div class="kartu"><h3>Cara mendapat piala</h3><ul class="ket" style="margin:8px 0 0;padding-left:20px"><li>🥉 <b>Piala kecil</b>: selesaikan Level 10 sebuah misi.</li><li>🥇 <b>Piala emas kecil</b>: kumpulkan 30⭐ di satu misi.</li><li>🥈 <b>Piala pos</b>: selesaikan semua misi di satu pos.</li><li>🏆 <b>Piala pulau</b>: jelajahi seluruh pulau.</li><li>👑 <b>Piala Raksasa</b>: semua pulau selesai sebelum hari TKA!</li></ul></div>`;
+    <div class="kartu"><h3>Cara mendapat piala</h3><ul class="ket" style="margin:8px 0 0;padding-left:20px"><li>🥉 <b>Piala kecil</b>: selesaikan Level 10 sebuah misi.</li><li>🥇 <b>Piala emas kecil</b>: kumpulkan 30⭐ di satu misi.</li><li>🥈 <b>Piala pos</b>: selesaikan semua misi di satu pos.</li><li>📝 <b>Piala Pos Tes</b>: raih nilai ${TES_TUNTAS} atau lebih di Pos Tes (30 soal, 75 menit).</li><li>🏆 <b>Piala pulau</b>: jelajahi seluruh pulau.</li><li>👑 <b>Piala Raksasa</b>: semua pulau selesai sebelum hari TKA!</li></ul></div>`;
 }
 const tglIndo = t => { const [y, m, d] = t.split("-").map(Number); return `${d} ${["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][m - 1]} ${y}`; };
 
@@ -415,6 +416,7 @@ function ortuDasbor(el) {
       ${lemah.length ? `<p class="ket" style="margin:12px 0 0">Perlu latihan tambahan: <b>${lemah.map(m => m.judul).join(", ")}</b> (akurasi terendah).</p>` : ""}
       ${S.sinkron?.kode ? `<p class="ket" style="margin:12px 0 0">☁️ Tersimpan online (Kode Anak <b>${kodeTampil(S.sinkron.kode)}</b>)${S.sinkron.terakhir ? `, terakhir ${jamPendek(S.sinkron.terakhir)}` : ""}${S.sinkron.tertunda ? " · ada perubahan yang belum terkirim" : ""}.</p>`
         : `<p class="ket" style="margin:12px 0 0">${S.sinkronMati ? "📱 Penyimpanan online dimatikan di perangkat ini; data hanya ada di perangkat ini. Nyalakan lagi di <b>Pengaturan → Kode Anak</b>." : "⏳ Kode Anak dibuat otomatis begitu perangkat ini tersambung internet. Untuk melihat kemajuan dari HP anak di sini, pilih <b>Pengaturan → Sudah punya Kode Anak?</b>."}</p>`}</div>
+    ${htmlPosTesOrtu()}
     <div class="kartu"><h3>Aktivitas terakhir</h3>${akhir ? `<ul class="daftar-aktivitas">${akhir}</ul>` : '<p class="ket" style="margin:6px 0 0">Belum ada level yang diselesaikan di perangkat ini.</p>'}</div>
     <div class="kartu"><h3>Kemajuan per misi</h3><p class="ket" style="margin:4px 0 8px"><b>Posisi</b> = level yang sedang dikerjakan (dan banyak level yang sudah lulus) · <b>Hasil</b> = persen jawaban benar dan berapa kali salah · <b>Waktu</b> = lama mengerjakan soal di misi itu (satu soal dihitung paling lama 5 menit).</p><div style="overflow-x:auto"><table class="tabel-laporan"><thead><tr><th>Misi</th><th>Posisi</th><th>⭐</th><th>Hasil</th><th>Waktu</th></tr></thead><tbody>${baris}</tbody></table></div></div>`;
 }
@@ -425,16 +427,17 @@ function ortuMateri(el) {
   const a = atur();
   el.innerHTML = `<div class="materi"><div class="kartu"><p class="ket" style="margin:0">Setiap misi punya <b>10 level</b>: level 1–2 sangat mudah, 3–4 mudah, 5–6 sedang, 7 sulit, <b>8 setara TKA</b>, 9–10 di atas TKA. Mulai level 6 bentuk soalnya seperti TKA.
       Aturan saat ini: <b>${a.soal} soal</b> per level, ${a.toleransi ? `boleh salah <b>${a.toleransi}×</b>` : "<b>harus benar semua</b>"}, nomor yang salah ${a.ulang ? "<b>diulang</b>" : "<b>tidak diulang</b>"}; bila salah melebihi batas, level <b>diulang dari nomor 1</b> (ubah di tab Pengaturan).</p>
-      <p class="ket" style="margin:8px 0 0">Buka sebuah misi, lalu tekan <b>Contoh</b> untuk melihat soal acak beserta kuncinya, atau <b>Coba</b> untuk mengerjakan level itu sendiri. Uji coba tidak mengubah kemajuan dan koin anak.</p></div>` +
+      <p class="ket" style="margin:8px 0 0">Setelah tiap pos/jurus ada <b>Pos Tes</b> (30 soal, 75 menit, setara TKA) yang menguji semua pos sebelumnya. Buka sebuah misi, lalu tekan <b>Contoh</b> untuk melihat soal acak beserta kuncinya, atau <b>Coba</b> untuk mengerjakan level itu sendiri. Uji coba tidak mengubah kemajuan dan koin anak.</p></div>` +
     PULAU.map(p => { const ms = misiPulau(p.id), ps = POS.filter(x => x.pulau === p.id);
       return `<div class="kartu modul-kartu modul-${p.id}"><div class="modul-kepala"><span class="md" aria-hidden="true">${p.ikon}</span><div><h2>Pulau ${p.judul}</h2><p>${ps.length} pos · ${ms.length} misi · ${ms.length * 10} level</p></div></div>` +
         ps.map(pos => `<div class="pos-sub">${pos.ikon} ${p.id === "mtk" ? `Pos ${pos.no} · ` : ""}${pos.judul}</div>` + MISI.filter(m => m.pos === pos.id).map(m =>
-          `<details class="tk-baris" data-misi="${m.id}"><summary><span class="tk-no" aria-hidden="true">${m.ikon}</span><span class="tk-nama"><b>${m.judul}</b><span>Anak lulus ${dataMisi(m.id).lv}/10 level · ⭐ ${bintangMisi(m.id)}/30</span></span><span class="tk-panah" aria-hidden="true"></span></summary><div class="tk-isi"></div></details>`).join("")).join("") + `</div>`; }).join("") +
+          `<details class="tk-baris" data-misi="${m.id}"><summary><span class="tk-no" aria-hidden="true">${m.ikon}</span><span class="tk-nama"><b>${m.judul}</b><span>Anak lulus ${dataMisi(m.id).lv}/10 level · ⭐ ${bintangMisi(m.id)}/30</span></span><span class="tk-panah" aria-hidden="true"></span></summary><div class="tk-isi"></div></details>`).join("")).join("") + htmlPosTesMateri(p.id) + `</div>`; }).join("") +
     `<p class="ket" style="text-align:center">Materi mengikuti Kurikulum Merdeka Fase C. Level 8 setara soal TKA, level 9–10 di atasnya.<br>Cocokkan dengan kisi-kisi resmi TKA SD/MI dari Pusmendik.</p></div>`;
   const w = el.querySelector(".materi");
   // Daftar level baru dibuat saat misi dibuka (bentuk soal ditentukan dari beberapa soal acak)
   w.addEventListener("toggle", e => { const d = e.target; if (d.matches?.("details[data-misi]") && d.open && !d.dataset.isi) { d.dataset.isi = 1; isiLevelMisi(d.querySelector(".tk-isi"), d.dataset.misi); } }, true);
-  w.addEventListener("click", e => { const b = e.target.closest("[data-contoh],[data-coba]"); if (!b) return; const id = b.closest("[data-misi]").dataset.misi; bunyi.klik();
+  w.addEventListener("click", e => { const bt = e.target.closest("[data-coba-tes]"); if (bt) { bunyi.klik(); return mulaiTes(bt.dataset.cobaTes, true); }
+    const b = e.target.closest("[data-contoh],[data-coba]"); if (!b) return; const id = b.closest("[data-misi]").dataset.misi; bunyi.klik();
     if (b.dataset.coba) return mulaiLevel(id, +b.dataset.coba, true);
     const L = +b.dataset.contoh, box = document.getElementById(`c-${id}-${L}`);
     box.innerHTML = Array.from({ length: 3 }, () => contohHtml(buatSoal(id, L, null))).join(""); box.hidden = false; b.textContent = "Contoh lain"; });
@@ -513,4 +516,5 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 /* ================= Mulai ================= */
 tampil(S.profil ? "beranda" : "sambut");
 if (S.profil && S.peran === "ortu") tampil("ortu");   // HP orang tua langsung ke halaman Orang Tua (tetap dengan PIN)
+cekTesTertunda();   // Pos Tes yang belum dikumpulkan saat aplikasi ditutup
 setTimeout(() => sinkronkan(), 800);

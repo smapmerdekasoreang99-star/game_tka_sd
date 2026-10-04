@@ -23,11 +23,11 @@ async function rpcPts(fn, arg) {
 const kodeTampil = k => (k ? k.slice(0, 4) + "-" + k.slice(4) : "");
 const kodeBersih = k => String(k || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 function dataKirim(x) { const d = {}; for (const k in x) if (!BAGIAN_LOKAL.includes(k)) d[k] = x[k]; return d; }
-const adaKemajuan = x => !!(x && x.profil && (x.log?.length || Object.values(x.misi || {}).some(m => m.total)));
+const adaKemajuan = x => !!(x && x.profil && (x.log?.length || Object.values(x.misi || {}).some(m => m.total) || Object.keys(x.posTes || {}).length));
 
 /* a = kemajuan di perangkat ini, b = kemajuan di server */
 function gabungKemajuan(a, b) {
-  const g = Object.assign(bawaan(), a, { misi: {}, piala: {} });
+  const g = Object.assign(bawaan(), a, { misi: {}, piala: {}, posTes: {} });
   const ta = a.waktu?.atur || 0, tb = b.waktu?.atur || 0;
   if (!a.profil || tb > ta) { g.profil = b.profil || a.profil; g.tka = b.tka || ""; if (b.atur) g.atur = b.atur; g.waktu = { ...(a.waktu || {}), atur: tb }; }
   for (const id of new Set([...Object.keys(a.misi || {}), ...Object.keys(b.misi || {})])) {
@@ -37,6 +37,10 @@ function gabungKemajuan(a, b) {
     g.misi[id] = { lv: Math.max(x.lv || 0, y.lv || 0), bin: Array.from({ length: 10 }, (_, i) => Math.max(x.bin?.[i] || 0, y.bin?.[i] || 0)), benar: banyak.benar || 0, total: banyak.total || 0, detik: banyak.detik || 0 };
   }
   for (const src of [a.piala || {}, b.piala || {}]) for (const k in src) if (!g.piala[k] || src[k] < g.piala[k]) g.piala[k] = src[k];
+  for (const id of new Set([...Object.keys(a.posTes || {}), ...Object.keys(b.posTes || {})])) {   // hasil Pos Tes: gabungan kedua perangkat
+    const r = new Map(); for (const x of [...(a.posTes?.[id] || []), ...(b.posTes?.[id] || [])]) r.set(x.t, x);
+    g.posTes[id] = [...r.values()].sort((p, q) => p.t - q.t).slice(-30);
+  }
   g.koin = Math.max(a.koin || 0, b.koin || 0);
   const api = [a.api, b.api].filter(x => x && x.tgl).sort((p, q) => (p.tgl === q.tgl ? q.n - p.n : p.tgl < q.tgl ? 1 : -1))[0];
   g.api = api ? { ...api } : { n: 0, tgl: "" };
@@ -65,15 +69,15 @@ async function sinkronkan({ diam = true } = {}) {
     catch (e) { if (!diam) tampilPesan("⚠️ Kode Anak belum bisa dibuat: " + e.message, 4000); return false; }
     finally { sedangSinkron = false; }
   }
-  if (M) { S.sinkron.tertunda = true; return false; }   // jangan mengganti data saat anak mengerjakan soal
+  if (M || T) { S.sinkron.tertunda = true; return false; }   // jangan mengganti data saat anak mengerjakan soal atau Pos Tes
   sedangSinkron = true;
   try {
     const srv = await rpcPts("pts_ambil", { p_kode: S.sinkron.kode });
-    if (M) { S.sinkron.tertunda = true; return false; }
+    if (M || T) { S.sinkron.tertunda = true; return false; }
     const sebelum = JSON.stringify(dataKirim(S)), g = gabungKemajuan(S, srv.data || {});
     g.riwayat = S.riwayat; g.suara = S.suara; g.sinkron = S.sinkron;
     await rpcPts("pts_simpan", { p_kode: S.sinkron.kode, p_data: dataKirim(g) });
-    if (M) return false;
+    if (M || T) return false;
     S = g; Object.assign(S.sinkron, { terakhir: Date.now(), tertunda: false, galat: "" }); simpanData(false);
     if (JSON.stringify(dataKirim(S)) !== sebelum) perbaruiTampilan();
     if (layarKini === "ortu") segarkanKartuSinkron();
