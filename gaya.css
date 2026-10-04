@@ -416,3 +416,10 @@ canvas#konfeti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-e
 .daftar-aktivitas li > span:first-child { flex: 0 0 100%; font-size: 12.5px; }
 .tabel-laporan td.angka { white-space: nowrap; }
 @media (max-width: 420px) { .tabel-laporan { font-size: 13px; } .tabel-laporan th, .tabel-laporan td { padding: 7px 3px; } .tabel-laporan th { font-size: 10.5px; letter-spacing: 0; } }
+/* Sinkron antarperangkat */
+.kode-sinkron { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--langit); border-radius: var(--r2); padding: 10px 14px; margin: 8px 0 4px; }
+.kode-sinkron b { font-family: var(--huruf-judul); font-size: 26px; letter-spacing: .08em; color: var(--gelap); }
+.kode-sinkron .tbl { margin-left: auto; }
+.status-sinkron { font-weight: 800; color: var(--hijau-tua); } .status-sinkron.tunda { color: var(--emas-teks); }
+.sambung-kode { display: flex; gap: 6px; align-items: center; }
+.sambung-kode .isian-teks { max-width: 140px; min-height: 44px; text-transform: uppercase; letter-spacing: .08em; text-align: center; }

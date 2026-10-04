@@ -22,7 +22,7 @@ let S = muatData();
 const atur = () => { const a = S.atur || {}, soal = PILIHAN_SOAL.includes(+a.soal) ? +a.soal : 5;
   return { soal, toleransi: Math.max(0, Math.min(TOLERANSI_MAKS, soal - 1, Number.isInteger(+a.toleransi) ? +a.toleransi : 1)), ulang: a.ulang !== false }; };
 let gagalSimpan = false;
-function simpanData() { try { localStorage.setItem(KUNCI_SIMPAN, JSON.stringify(S)); gagalSimpan = false; } catch (e) { gagalSimpan = true; tampilPesan("⚠️ Kemajuan belum bisa disimpan di perangkat ini."); } }
+function simpanData(jadwal = true) { try { localStorage.setItem(KUNCI_SIMPAN, JSON.stringify(S)); gagalSimpan = false; if (jadwal && typeof jadwalSinkron === "function") jadwalSinkron(); } catch (e) { gagalSimpan = true; tampilPesan("⚠️ Kemajuan belum bisa disimpan di perangkat ini."); } }
 /* Muat ulang dari penyimpanan supaya tab/halaman yang lama terbuka memakai kemajuan terbaru
    (dan tidak menimpa kemajuan anak dengan data lama). Tidak dilakukan saat sedang mengerjakan soal. */
 function segarkanData() { if (M || gagalSimpan) return false; const baru = muatData(); if (!baru.profil) return false; S = baru; return true; }
@@ -131,7 +131,12 @@ function lSambut() {
     <div class="kartu"><label class="lbl-isian" for="in-nama">Siapa namamu?</label><input id="in-nama" class="isian-teks" maxlength="20" autocomplete="off" placeholder="Tulis namamu" value="${esc(S.profil?.nama || "")}">
       <span class="lbl-isian">Pilih teman petualanganmu</span><div class="pilih-avatar" id="av">${AVATAR.map(a => `<button type="button" aria-pressed="${a === pilihAv}" data-av="${a}">${a}</button>`).join("")}</div>
       <label class="lbl-isian" for="in-tka">Tanggal TKA <span class="ket">(boleh diisi nanti oleh orang tua)</span></label><input id="in-tka" type="date" class="isian-teks" value="${S.tka}">
-      <button class="tbl tbl-utama tbl-lebar" id="mulai" style="margin-top:20px">Mulai Petualangan 🚀</button></div>`;
+      <button class="tbl tbl-utama tbl-lebar" id="mulai" style="margin-top:20px">Mulai Petualangan 🚀</button>
+      <button class="tbl tbl-putih tbl-lebar" id="punya-kode" style="margin-top:10px">☁️ Sudah punya kode sinkron?</button></div>`;
+  layar.querySelector("#punya-kode").addEventListener("click", () => { bunyi.klik();
+    const l = dialog(`<div style="font-size:48px">☁️</div><h2>Sambungkan kemajuan</h2><p class="ket">Ketik kode sinkron dari perangkat lain (lihat di <b>Orang Tua → Pengaturan</b>).</p><input class="isian-teks" id="kode-sambut" maxlength="9" autocomplete="off" placeholder="XXXX-XXXX" style="text-align:center;letter-spacing:.1em">`,
+      [["Sambungkan", "tbl-utama", () => sambungkanKode(kode)], ["Batal", "tbl-putih", null]]);
+    let kode = ""; const i = l.querySelector("#kode-sambut"); i.addEventListener("input", e => (kode = e.target.value)); i.addEventListener("keydown", e => { if (e.key === "Enter") l.querySelector("button[data-i='0']").click(); }); i.focus(); });
   layar.querySelector("#av").addEventListener("click", e => { const b = e.target.closest("[data-av]"); if (!b) return; pilihAv = b.dataset.av; bunyi.klik(); layar.querySelectorAll("[data-av]").forEach(x => x.setAttribute("aria-pressed", x === b)); });
   layar.querySelector("#mulai").addEventListener("click", () => {
     const n = layar.querySelector("#in-nama").value.trim(); if (!n) { tampilPesan("Tulis namamu dulu, ya 😊"); layar.querySelector("#in-nama").focus(); return; }
@@ -396,7 +401,8 @@ function ortuDasbor(el) {
   const lemah = MISI.filter(m => dataMisi(m.id).total >= 10).sort((a, b) => dataMisi(a.id).benar / dataMisi(a.id).total - dataMisi(b.id).benar / dataMisi(b.id).total).slice(0, 3);
   el.innerHTML = `<div class="kartu"><div class="statistik"><div><b>${fmt(tot)}</b>soal dikerjakan</div><div><b>${tot ? Math.round(ben / tot * 100) : 0}%</b>jawaban benar</div><div><b>${minggu}</b>level minggu ini</div></div>
       ${lemah.length ? `<p class="ket" style="margin:12px 0 0">Perlu latihan tambahan: <b>${lemah.map(m => m.judul).join(", ")}</b> (akurasi terendah).</p>` : ""}
-      <p class="ket" style="margin:12px 0 0">📱 Data ini tersimpan di perangkat dan peramban ini saja. Bila anak bermain di HP/peramban lain, kemajuannya tidak tampil di sini; pindahkan lewat <b>Pengaturan → Unduh cadangan</b> lalu <b>Pulihkan</b> di perangkat ini.</p></div>
+      ${S.sinkron?.kode ? `<p class="ket" style="margin:12px 0 0">☁️ Tersinkron antarperangkat (kode <b>${kodeTampil(S.sinkron.kode)}</b>)${S.sinkron.terakhir ? `, terakhir ${jamPendek(S.sinkron.terakhir)}` : ""}${S.sinkron.tertunda ? " · ada perubahan yang belum terkirim" : ""}.</p>`
+        : `<p class="ket" style="margin:12px 0 0">📱 Data ini tersimpan di perangkat dan peramban ini saja. Supaya kemajuan dari HP anak ikut tampil di sini, aktifkan <b>Pengaturan → Sinkron antarperangkat</b>.</p>`}</div>
     <div class="kartu"><h3>Aktivitas terakhir</h3>${akhir ? `<ul class="daftar-aktivitas">${akhir}</ul>` : '<p class="ket" style="margin:6px 0 0">Belum ada level yang diselesaikan di perangkat ini.</p>'}</div>
     <div class="kartu"><h3>Kemajuan per misi</h3><p class="ket" style="margin:4px 0 8px"><b>Sedang di</b> = level yang sedang dikerjakan anak · <b>Lulus</b> = banyak level yang sudah lulus.</p><div style="overflow-x:auto"><table class="tabel-laporan"><thead><tr><th>Misi</th><th>Sedang di</th><th>Lulus</th><th>⭐</th><th>Benar</th></tr></thead><tbody>${baris}</tbody></table></div></div>`;
 }
@@ -449,16 +455,18 @@ function ortuAtur(el) {
       <div class="baris-set"><span><b>Ulangi nomor yang salah</b><div class="ket">Anak mengerjakan soal serupa di nomor itu sampai benar</div></span><button class="tbl tbl-kecil ${atur().ulang ? "tbl-hijau" : "tbl-putih"}" id="o-ulang" aria-pressed="${atur().ulang}">${atur().ulang ? "✅ Nyala" : "⏭️ Mati"}</button></div>
       <div class="baris-set"><b>Suara</b><button class="tbl tbl-kecil ${S.suara ? "tbl-hijau" : "tbl-putih"}" id="o-suara">${S.suara ? "🔊 Nyala" : "🔇 Mati"}</button></div>
       <button class="tbl tbl-biru tbl-lebar" id="o-simpan" style="margin-top:12px">Simpan pengaturan</button></div>
+    <div class="kartu" id="kartu-sinkron">${isiKartuSinkron()}</div>
     <div class="kartu"><h3>Cadangan kemajuan</h3><p class="ket">Kemajuan tersimpan di peramban perangkat ini. Unduh cadangan secara berkala, atau untuk pindah ke perangkat lain.</p>
       <div class="baris-set"><button class="tbl tbl-putih tbl-kecil" id="o-unduh">⬇️ Unduh cadangan</button><label class="tbl tbl-putih tbl-kecil" style="cursor:pointer">⬆️ Pulihkan dari berkas<input type="file" id="o-pulih" accept=".json,application/json" hidden></label></div>
       <div class="baris-set"><span class="ket">Mulai dari awal (semua kemajuan dihapus)</span><button class="tbl tbl-merah tbl-kecil" id="o-hapus">Hapus kemajuan</button></div></div>`;
   const $ = q => el.querySelector(q);
+  pasangKartuSinkron($("#kartu-sinkron"));
   $("#o-suara").addEventListener("click", e => { S.suara = !S.suara; e.target.textContent = S.suara ? "🔊 Nyala" : "🔇 Mati"; e.target.className = "tbl tbl-kecil " + (S.suara ? "tbl-hijau" : "tbl-putih"); simpanData(); bunyi.klik(); });
   let ulang = atur().ulang;
   $("#o-ulang").addEventListener("click", e => { ulang = !ulang; e.target.textContent = ulang ? "✅ Nyala" : "⏭️ Mati"; e.target.className = "tbl tbl-kecil " + (ulang ? "tbl-hijau" : "tbl-putih"); e.target.setAttribute("aria-pressed", ulang); bunyi.klik(); });
   $("#o-simpan").addEventListener("click", () => { const n = $("#o-nama").value.trim(); if (!n) return tampilPesan("Nama tidak boleh kosong.");
     const soal = +$("#o-soal").value, tol = +$("#o-tol").value; if (tol >= soal) return tampilPesan("Toleransi harus lebih kecil dari jumlah soal.");
-    S.profil.nama = n; S.profil.avatar = $("#o-av").value; S.tka = $("#o-tka").value || ""; S.atur = { soal, toleransi: tol, ulang }; simpanData(); pasangKepala(); tampilPesan("✅ Pengaturan disimpan"); });
+    S.profil.nama = n; S.profil.avatar = $("#o-av").value; S.tka = $("#o-tka").value || ""; S.atur = { soal, toleransi: tol, ulang }; S.waktu = { ...(S.waktu || {}), atur: Date.now() }; simpanData(); pasangKepala(); tampilPesan("✅ Pengaturan disimpan"); });
   $("#o-unduh").addEventListener("click", async () => { const nm = `petualangan-tka-${S.profil.nama.replace(/\W+/g, "-").toLowerCase()}-${hariIni()}.json`; try { await simpanBerkas(JSON.stringify(S), nm, "application/json"); tampilPesan(pesanSimpan("diunduh", nm), 4000); } catch (e) { tampilPesan("Unduhan gagal. Jika memakai VPN atau ekstensi peramban, matikan dulu lalu coba lagi.", 5000); } });
   $("#o-pulih").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (x.v !== 1 || !x.profil) throw 0;
       dialog(`<div style="font-size:48px">⬆️</div><h2>Pulihkan cadangan?</h2><p class="ket">Kemajuan <b>${esc(x.profil.nama)}</b> akan menggantikan kemajuan di perangkat ini.</p>`, [["Ya, pulihkan", "tbl-utama", () => { S = Object.assign(bawaan(), x); simpanData(); tampilPesan("✅ Cadangan dipulihkan"); tampil("beranda"); }], ["Batal", "tbl-putih", null]]);
@@ -488,7 +496,8 @@ function perbaruiTampilan() {
   if (["beranda", "piala", "pulau", "jalur"].includes(layarKini)) { const y = window.scrollY; tampil(layarKini, argKini); window.scrollTo(0, y); }
 }
 window.addEventListener("storage", e => { if (e.key === KUNCI_SIMPAN) perbaruiTampilan(); });
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") perbaruiTampilan(); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { perbaruiTampilan(); sinkronkan(); } });
 
 /* ================= Mulai ================= */
 tampil(S.profil ? "beranda" : "sambut");
+setTimeout(() => sinkronkan(), 800);

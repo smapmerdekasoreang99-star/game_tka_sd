@@ -1,0 +1,133 @@
+/* Sinkron kemajuan antarperangkat — Petualangan TKA SD
+   Kemajuan juga disimpan di database Tryout (tabel pts_anak, lewat fungsi pts_*) dengan
+   kode sinkron 8 huruf sebagai penyambung. Game tetap bisa dimainkan tanpa internet;
+   sinkron menyusul saat tersambung. Kemajuan dua perangkat digabung: level & bintang
+   tertinggi, piala & riwayat aktivitas disatukan, pengaturan orang tua yang terbaru. */
+"use strict";
+
+const SINKRON_DB = { url: "https://jzxcnfetpjkltjjbglxz.supabase.co", key: "sb_publishable_9pl5IOJl-Vx0KEnHtCs3nA_ioZOkacq" };
+const BAGIAN_LOKAL = ["riwayat", "suara", "sinkron"];   // tetap di perangkat ini, tidak dikirim
+let sedangSinkron = false, jedaSinkron = null;
+
+async function rpcPts(fn, arg) {
+  let r;
+  try {
+    r = await fetch(`${SINKRON_DB.url}/rest/v1/rpc/${fn}`, { method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SINKRON_DB.key, Authorization: "Bearer " + SINKRON_DB.key }, body: JSON.stringify(arg) });
+  } catch (e) { throw new Error("Tidak tersambung ke internet."); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.message || "Server menolak permintaan.");
+  return j;
+}
+const kodeTampil = k => (k ? k.slice(0, 4) + "-" + k.slice(4) : "");
+const kodeBersih = k => String(k || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+function dataKirim(x) { const d = {}; for (const k in x) if (!BAGIAN_LOKAL.includes(k)) d[k] = x[k]; return d; }
+const adaKemajuan = x => !!(x && x.profil && (x.log?.length || Object.values(x.misi || {}).some(m => m.total)));
+
+/* a = kemajuan di perangkat ini, b = kemajuan di server */
+function gabungKemajuan(a, b) {
+  const g = Object.assign(bawaan(), a, { misi: {}, piala: {} });
+  const ta = a.waktu?.atur || 0, tb = b.waktu?.atur || 0;
+  if (!a.profil || tb > ta) { g.profil = b.profil || a.profil; g.tka = b.tka || ""; if (b.atur) g.atur = b.atur; g.waktu = { ...(a.waktu || {}), atur: tb }; }
+  for (const id of new Set([...Object.keys(a.misi || {}), ...Object.keys(b.misi || {})])) {
+    const x = a.misi?.[id], y = b.misi?.[id];
+    if (!x || !y) { g.misi[id] = JSON.parse(JSON.stringify(x || y)); continue; }
+    const banyak = (y.total || 0) > (x.total || 0) ? y : x;
+    g.misi[id] = { lv: Math.max(x.lv || 0, y.lv || 0), bin: Array.from({ length: 10 }, (_, i) => Math.max(x.bin?.[i] || 0, y.bin?.[i] || 0)), benar: banyak.benar || 0, total: banyak.total || 0 };
+  }
+  for (const src of [a.piala || {}, b.piala || {}]) for (const k in src) if (!g.piala[k] || src[k] < g.piala[k]) g.piala[k] = src[k];
+  g.koin = Math.max(a.koin || 0, b.koin || 0);
+  const api = [a.api, b.api].filter(x => x && x.tgl).sort((p, q) => (p.tgl === q.tgl ? q.n - p.n : p.tgl < q.tgl ? 1 : -1))[0];
+  g.api = api ? { ...api } : { n: 0, tgl: "" };
+  const ha = a.harian || {}, hb = b.harian || {};
+  g.harian = ha.tgl === hb.tgl ? { tgl: ha.tgl || "", selesai: !!(ha.selesai || hb.selesai) } : (ha.tgl || "") > (hb.tgl || "") ? { ...ha } : { ...hb };
+  const log = new Map();
+  for (const x of [...(a.log || []), ...(b.log || [])]) log.set(`${x.t}|${x.m}|${x.L}`, x);
+  g.log = [...log.values()].sort((p, q) => p.t - q.t).slice(-600);
+  return g;
+}
+
+/* Ambil dari server → gabung → simpan di perangkat → kirim gabungan ke server */
+async function sinkronkan({ diam = true } = {}) {
+  if (!S.sinkron?.kode || sedangSinkron) return false;
+  if (M) { S.sinkron.tertunda = true; return false; }   // jangan mengganti data saat anak mengerjakan soal
+  sedangSinkron = true;
+  try {
+    const srv = await rpcPts("pts_ambil", { p_kode: S.sinkron.kode });
+    if (M) { S.sinkron.tertunda = true; return false; }
+    const sebelum = JSON.stringify(dataKirim(S)), g = gabungKemajuan(S, srv.data || {});
+    g.riwayat = S.riwayat; g.suara = S.suara; g.sinkron = S.sinkron;
+    await rpcPts("pts_simpan", { p_kode: S.sinkron.kode, p_data: dataKirim(g) });
+    if (M) return false;
+    S = g; Object.assign(S.sinkron, { terakhir: Date.now(), tertunda: false, galat: "" }); simpanData(false);
+    if (JSON.stringify(dataKirim(S)) !== sebelum) perbaruiTampilan();
+    if (layarKini === "ortu") segarkanKartuSinkron();
+    if (!diam) tampilPesan("☁️ Kemajuan sudah disinkronkan");
+    return true;
+  } catch (e) {
+    if (S.sinkron) { S.sinkron.tertunda = true; S.sinkron.galat = e.message; simpanData(false); }
+    if (layarKini === "ortu") segarkanKartuSinkron();
+    if (!diam) tampilPesan("⚠️ Belum tersinkron: " + e.message, 4000);
+    return false;
+  } finally { sedangSinkron = false; }
+}
+/* Dipanggil setiap kali kemajuan disimpan: kirim beberapa detik kemudian (tidak di tiap jawaban) */
+function jadwalSinkron() { if (!S.sinkron?.kode) return; S.sinkron.tertunda = true; clearTimeout(jedaSinkron); jedaSinkron = setTimeout(() => sinkronkan(), 4000); }
+window.addEventListener("online", () => sinkronkan());
+
+/* ---------- Tampilan di tab Pengaturan ---------- */
+const jamPendek = t => { const d = new Date(t); return `${tglIndo(hariIni(d))}, ${String(d.getHours()).padStart(2, "0")}.${String(d.getMinutes()).padStart(2, "0")}`; };
+function isiKartuSinkron() {
+  const s = S.sinkron;
+  if (!s?.kode) return `<h3>☁️ Sinkron antarperangkat</h3><p class="ket">Simpan kemajuan juga di server sekolah, supaya Dasbor Ortu di HP lain ikut melihat kemajuan anak dan kemajuan tidak hilang bila HP berganti.</p>
+    <button class="tbl tbl-biru tbl-lebar" id="s-aktif">Aktifkan sinkron</button>
+    <div class="baris-set" style="margin-top:8px"><label for="s-kode"><b>Sudah punya kode?</b><div class="ket">Ketik kode dari perangkat anak</div></label>
+      <span class="sambung-kode"><input id="s-kode" class="isian-teks" maxlength="9" autocomplete="off" placeholder="XXXX-XXXX"><button class="tbl tbl-putih tbl-kecil" id="s-sambung">Sambungkan</button></span></div>`;
+  const status = s.galat && s.tertunda ? `<span class="status-sinkron tunda">⚠️ Belum tersinkron (${esc(s.galat)})</span>` : s.tertunda ? '<span class="status-sinkron tunda">⏳ Menunggu dikirim</span>' : '<span class="status-sinkron">✅ Tersinkron</span>';
+  return `<h3>☁️ Sinkron antarperangkat</h3>
+    <div class="kode-sinkron"><span class="ket">Kode sinkron</span><b id="s-teks">${kodeTampil(s.kode)}</b><button class="tbl tbl-putih tbl-kecil" id="s-salin">Salin</button></div>
+    <p class="ket" style="margin:6px 0">${status}${s.terakhir ? ` · terakhir ${jamPendek(s.terakhir)}` : ""}</p>
+    <p class="ket" style="margin:0 0 8px">Di HP lain: buka <b>Orang Tua → Pengaturan → Sudah punya kode?</b>, lalu ketik kode di atas. Jaga kode ini seperti kata sandi.</p>
+    <div class="baris-set"><button class="tbl tbl-biru tbl-kecil" id="s-sekarang">🔄 Sinkronkan sekarang</button><button class="tbl tbl-putih tbl-kecil" id="s-putus">Putuskan di perangkat ini</button></div>
+    <div class="baris-set"><span class="ket">Hapus kemajuan dari server (kemajuan di perangkat tetap ada)</span><button class="tbl tbl-merah tbl-kecil" id="s-hapus">Hapus dari server</button></div>`;
+}
+function segarkanKartuSinkron() { const k = document.getElementById("kartu-sinkron"); if (k) { k.innerHTML = isiKartuSinkron(); pasangKartuSinkron(k); } }
+function pasangKartuSinkron(k) {
+  const $ = q => k.querySelector(q), sibuk = (b, ya) => { if (b) { b.disabled = ya; b.style.opacity = ya ? 0.6 : ""; } };
+  $("#s-aktif")?.addEventListener("click", async e => { sibuk(e.target, true);
+    try { const r = await rpcPts("pts_buat", { p_data: dataKirim(S) }); S.sinkron = { kode: r.kode, terakhir: Date.now(), tertunda: false }; simpanData(false); tampilPesan("☁️ Sinkron aktif. Kode: " + kodeTampil(r.kode), 4000); }
+    catch (er) { tampilPesan("⚠️ " + er.message, 4000); }
+    segarkanKartuSinkron(); });
+  $("#s-sambung")?.addEventListener("click", e => sambungkanKode($("#s-kode").value, e.target));
+  $("#s-kode")?.addEventListener("keydown", e => { if (e.key === "Enter") $("#s-sambung").click(); });
+  $("#s-salin")?.addEventListener("click", async () => { try { await navigator.clipboard.writeText(kodeTampil(S.sinkron.kode)); tampilPesan("Kode disalin"); } catch (er) { tampilPesan("Kode: " + kodeTampil(S.sinkron.kode), 4000); } });
+  $("#s-sekarang")?.addEventListener("click", async e => { sibuk(e.target, true); await sinkronkan({ diam: false }); segarkanKartuSinkron(); });
+  $("#s-putus")?.addEventListener("click", () => dialog(`<div style="font-size:48px">🔌</div><h2>Putuskan sinkron?</h2><p class="ket">Perangkat ini berhenti menyinkronkan. Kemajuan di perangkat dan di server tetap ada; sambungkan lagi kapan saja dengan kode <b>${kodeTampil(S.sinkron.kode)}</b>.</p>`,
+    [["Putuskan", "tbl-merah", () => { delete S.sinkron; simpanData(false); segarkanKartuSinkron(); }], ["Batal", "tbl-putih", null]]));
+  $("#s-hapus")?.addEventListener("click", () => dialog(`<div style="font-size:48px">🗑️</div><h2>Hapus dari server?</h2><p class="ket">Kemajuan dengan kode <b>${kodeTampil(S.sinkron.kode)}</b> dihapus dari server dan kode tidak bisa dipakai lagi oleh perangkat mana pun. Kemajuan di perangkat ini tetap ada.</p>`,
+    [["Hapus dari server", "tbl-merah", async () => { try { await rpcPts("pts_hapus", { p_kode: S.sinkron.kode }); delete S.sinkron; simpanData(false); tampilPesan("Data di server sudah dihapus"); } catch (er) { tampilPesan("⚠️ " + er.message, 4000); } segarkanKartuSinkron(); }], ["Batal", "tbl-putih", null]]));
+}
+
+/* Menyambungkan perangkat ini ke kode yang sudah ada (dari Pengaturan atau layar sambutan) */
+async function sambungkanKode(teks, tombol) {
+  const kode = kodeBersih(teks);
+  if (kode.length !== 8) { tampilPesan("Kode sinkron terdiri atas 8 huruf/angka, mis. KIKO-7QX3."); return; }
+  if (tombol) tombol.disabled = true;
+  let srv;
+  try { srv = await rpcPts("pts_ambil", { p_kode: kode }); }
+  catch (er) { tampilPesan("⚠️ " + er.message, 4000); if (tombol) tombol.disabled = false; return; }
+  if (tombol) tombol.disabled = false;
+  const d = srv.data || {}, namaSrv = d.profil?.nama || "(tanpa nama)";
+  const pakai = gabung => {
+    const lokal = { riwayat: S.riwayat || {}, suara: S.suara !== false };
+    S = gabung && S.profil ? gabungKemajuan(S, d) : Object.assign(bawaan(), d);
+    Object.assign(S, lokal, { sinkron: { kode: srv.kode, terakhir: Date.now(), tertunda: gabung } }); simpanData(false);
+    tampilPesan(`☁️ Tersambung dengan kemajuan ${namaSrv}`, 3500);
+    if (gabung) sinkronkan();
+    if (layarKini === "ortu") { izinOrtu = true; tampil("ortu"); } else tampil("beranda");
+  };
+  if (!adaKemajuan(S)) return pakai(false);
+  if (S.profil.nama.trim().toLowerCase() === namaSrv.trim().toLowerCase()) return pakai(true);
+  dialog(`<div style="font-size:48px">⚠️</div><h2>Nama berbeda</h2><p class="ket">Kode ini berisi kemajuan <b>${esc(namaSrv)}</b>, sedangkan perangkat ini berisi kemajuan <b>${esc(S.profil.nama)}</b>. Bila diteruskan, kemajuan di perangkat ini <b>diganti</b> dengan kemajuan ${esc(namaSrv)}. Unduh cadangan dulu bila perlu.</p>`,
+    [[`Ganti dengan ${esc(namaSrv)}`, "tbl-merah", () => pakai(false)], ["Batal", "tbl-putih", null]]);
+}
