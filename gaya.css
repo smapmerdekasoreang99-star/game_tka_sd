@@ -408,3 +408,5 @@ canvas#konfeti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-e
 .contoh-kunci { font-size: 14px; background: var(--hijau-muda); color: var(--hijau-tua); border-radius: var(--r1); padding: 6px 10px; }
 .contoh-kunci div { color: var(--tinta); }
 @media (max-width: 480px) { .tk-baris > summary { padding: 12px 14px; } .tk-isi { padding: 0 14px 12px; } .lv-tombol { margin-left: 0; width: 100%; } .lv-tombol .tbl { flex: 1; } }
+.umpan.ulang-awal { margin-top: 10px; background: var(--emas-muda); border: 2px solid var(--emas); color: var(--emas-teks); }
+.umpan.ulang-awal h3 { color: var(--emas-teks); }
