@@ -34,7 +34,7 @@ function gabungKemajuan(a, b) {
     const x = a.misi?.[id], y = b.misi?.[id];
     if (!x || !y) { g.misi[id] = JSON.parse(JSON.stringify(x || y)); continue; }
     const banyak = (y.total || 0) > (x.total || 0) ? y : x;
-    g.misi[id] = { lv: Math.max(x.lv || 0, y.lv || 0), bin: Array.from({ length: 10 }, (_, i) => Math.max(x.bin?.[i] || 0, y.bin?.[i] || 0)), benar: banyak.benar || 0, total: banyak.total || 0 };
+    g.misi[id] = { lv: Math.max(x.lv || 0, y.lv || 0), bin: Array.from({ length: 10 }, (_, i) => Math.max(x.bin?.[i] || 0, y.bin?.[i] || 0)), benar: banyak.benar || 0, total: banyak.total || 0, detik: banyak.detik || 0 };
   }
   for (const src of [a.piala || {}, b.piala || {}]) for (const k in src) if (!g.piala[k] || src[k] < g.piala[k]) g.piala[k] = src[k];
   g.koin = Math.max(a.koin || 0, b.koin || 0);
