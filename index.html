@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D2A3A">
+<title>Petualangan TKA SD</title>
+<meta name="description" content="Latihan TKA SD seperti bermain game: jelajahi pulau, selesaikan 10 level setiap misi, dan kumpulkan piala.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
+<link rel="stylesheet" href="gaya.css?v=1">
+</head>
+<body>
+<header class="kepala" id="kepala" hidden>
+  <div class="isi" id="kepala-isi"></div>
+</header>
+
+<main class="bungkus" id="layar" aria-live="polite"></main>
+
+<nav class="nav-bawah" id="nav" hidden aria-label="Menu utama">
+  <div class="isi">
+    <button data-ke="beranda"><span>🗺️</span>Peta</button>
+    <button data-ke="piala"><span>🏆</span>Piala</button>
+    <button data-ke="ortu"><span>👨‍👩‍👧</span>Orang Tua</button>
+  </div>
+</nav>
+
+<canvas id="konfeti" hidden></canvas>
+
+<script src="soal/inti.js?v=1"></script>
+<script src="soal/bilangan.js?v=1"></script>
+<script src="soal/aljabar.js?v=1"></script>
+<script src="soal/ukur.js?v=1"></script>
+<script src="soal/data.js?v=1"></script>
+<script src="simpan.js?v=1"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
