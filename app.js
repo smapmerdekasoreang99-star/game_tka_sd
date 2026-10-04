@@ -21,7 +21,11 @@ let S = muatData();
 /* Aturan level dari halaman Orang Tua: jumlah soal, batas kesalahan, dan ulangi nomor yang salah */
 const atur = () => { const a = S.atur || {}, soal = PILIHAN_SOAL.includes(+a.soal) ? +a.soal : 5;
   return { soal, toleransi: Math.max(0, Math.min(TOLERANSI_MAKS, soal - 1, Number.isInteger(+a.toleransi) ? +a.toleransi : 1)), ulang: a.ulang !== false }; };
-function simpanData() { try { localStorage.setItem(KUNCI_SIMPAN, JSON.stringify(S)); } catch (e) { tampilPesan("⚠️ Kemajuan belum bisa disimpan di perangkat ini."); } }
+let gagalSimpan = false;
+function simpanData() { try { localStorage.setItem(KUNCI_SIMPAN, JSON.stringify(S)); gagalSimpan = false; } catch (e) { gagalSimpan = true; tampilPesan("⚠️ Kemajuan belum bisa disimpan di perangkat ini."); } }
+/* Muat ulang dari penyimpanan supaya tab/halaman yang lama terbuka memakai kemajuan terbaru
+   (dan tidak menimpa kemajuan anak dengan data lama). Tidak dilakukan saat sedang mengerjakan soal. */
+function segarkanData() { if (M || gagalSimpan) return false; const baru = muatData(); if (!baru.profil) return false; S = baru; return true; }
 
 const hariIni = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const selisihHari = (a, b) => Math.round((Date.parse(b + "T00:00:00") - Date.parse(a + "T00:00:00")) / 864e5);
@@ -95,7 +99,7 @@ function pialaSVG(jenis, ikon = "") {
 
 /* ================= Kerangka layar ================= */
 const layar = document.getElementById("layar"), kepala = document.getElementById("kepala"), kepalaIsi = document.getElementById("kepala-isi"), nav = document.getElementById("nav");
-let layarKini = "", izinOrtu = false;
+let layarKini = "", argKini, izinOrtu = false;
 function pasangKepala(kembali, arg) {
   kepala.hidden = false;
   kepalaIsi.innerHTML = `${kembali ? `<button class="kembali" data-ke="${kembali}"${arg ? ` data-arg="${arg}"` : ""} aria-label="Kembali">←</button>` : ""}
@@ -105,8 +109,9 @@ function pasangKepala(kembali, arg) {
 }
 function pasangNav(aktif) { nav.hidden = !aktif; nav.querySelectorAll("button").forEach(b => { if (b.dataset.ke === aktif) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function tampil(nama_, arg) {
+  if (nama_ !== "sambut") segarkanData();
   if (nama_ === "ortu" && !izinOrtu) return mintaPin();
-  izinOrtu = false; layarKini = nama_; window.scrollTo(0, 0);
+  izinOrtu = false; layarKini = nama_; argKini = arg; window.scrollTo(0, 0);
   ({ sambut: lSambut, beranda: lBeranda, pulau: lPulau, jalur: lJalur, piala: lPiala, ortu: lOrtu }[nama_])(arg);
 }
 document.addEventListener("click", e => { const b = e.target.closest("[data-ke]"); if (b) { bunyi.klik(); tampil(b.dataset.ke, b.dataset.arg); } });
@@ -312,7 +317,7 @@ function selesaiLevel() {
   const pertama = lulus && d.lv < L, naikBintang = bintang > d.bin[L - 1];
   if (naikBintang) d.bin[L - 1] = bintang; if (pertama) d.lv = L;
   const bonus = lulus ? (pertama ? 20 + L * 5 : 5) : 0; S.koin += bonus;
-  S.log.push({ t: Date.now(), m: id, L, b: benar }); if (S.log.length > 600) S.log.splice(0, S.log.length - 600);
+  S.log.push({ t: Date.now(), m: id, L, b: benar, n, lulus }); if (S.log.length > 600) S.log.splice(0, S.log.length - 600);
   if (pertama && L === 10 && !S.piala["misi-" + id]) { S.piala["misi-" + id] = hariIni(); antrean.push(["perunggu", cariMisi(id).ikon, "Piala Misi!", `Kamu menaklukkan semua level <b>${cariMisi(id).judul}</b>. Piala kecil ini milikmu!`]); }
   if (bintangMisi(id) === 30 && !S.piala["emas-" + id]) { S.piala["emas-" + id] = hariIni(); antrean.push(["emas", cariMisi(id).ikon, "Piala Emas!", `Sempurna! 30 bintang di <b>${cariMisi(id).judul}</b>. Pialamu berubah menjadi emas!`]); }
   const pos = POS.find(p => p.id === cariMisi(id).pos);
@@ -383,11 +388,17 @@ function isiOrtu() { ({ dasbor: ortuDasbor, materi: ortuMateri, atur: ortuAtur }
 function ortuDasbor(el) {
   const tot = MISI.reduce((s, m) => s + dataMisi(m.id).total, 0), ben = MISI.reduce((s, m) => s + dataMisi(m.id).benar, 0);
   const minggu = S.log.filter(x => Date.now() - x.t < 7 * 864e5).length;
-  const baris = PULAU.map(p => `<tr class="kelompok"><td colspan="4">${p.ikon} ${p.judul}</td></tr>` + misiPulau(p.id).map(m => { const d = dataMisi(m.id); return `<tr><td>${m.ikon} ${m.judul}</td><td class="angka">${d.lv}/10</td><td class="angka">${bintangMisi(m.id)}</td><td class="angka">${d.total ? Math.round(d.benar / d.total * 100) + "%" : "–"}</td></tr>`; }).join("")).join("");
+  const posisi = (m, d) => (misiSelesai(m.id) ? "Selesai 🏆" : !d.lv && !d.total ? "–" : `Level ${d.lv + 1}`);
+  const baris = PULAU.map(p => `<tr class="kelompok"><td colspan="5">${p.ikon} ${p.judul}</td></tr>` + misiPulau(p.id).map(m => { const d = dataMisi(m.id); return `<tr><td>${m.ikon} ${m.judul}</td><td class="angka">${posisi(m, d)}</td><td class="angka">${d.lv}/10</td><td class="angka">${bintangMisi(m.id)}</td><td class="angka">${d.total ? Math.round(d.benar / d.total * 100) + "%" : "–"}</td></tr>`; }).join("")).join("");
+  const jamTgl = x => { const d = new Date(x); return `${tglIndo(hariIni(d))}, ${String(d.getHours()).padStart(2, "0")}.${String(d.getMinutes()).padStart(2, "0")}`; };
+  const akhir = S.log.slice(-8).reverse().map(x => { const m = cariMisi(x.m); if (!m) return ""; const hasil = x.lulus === undefined ? `${x.b} benar` : x.lulus ? `✅ lulus · ${x.b}/${x.n} benar langsung` : "belum lulus";
+    return `<li><span class="ket">${jamTgl(x.t)}</span><span>${m.ikon} ${m.judul} · <b>Level ${x.L}</b></span><span class="ket">${hasil}</span></li>`; }).join("");
   const lemah = MISI.filter(m => dataMisi(m.id).total >= 10).sort((a, b) => dataMisi(a.id).benar / dataMisi(a.id).total - dataMisi(b.id).benar / dataMisi(b.id).total).slice(0, 3);
   el.innerHTML = `<div class="kartu"><div class="statistik"><div><b>${fmt(tot)}</b>soal dikerjakan</div><div><b>${tot ? Math.round(ben / tot * 100) : 0}%</b>jawaban benar</div><div><b>${minggu}</b>level minggu ini</div></div>
-      ${lemah.length ? `<p class="ket" style="margin:12px 0 0">Perlu latihan tambahan: <b>${lemah.map(m => m.judul).join(", ")}</b> (akurasi terendah).</p>` : ""}</div>
-    <div class="kartu"><h3>Kemajuan per misi</h3><div style="overflow-x:auto"><table class="tabel-laporan"><thead><tr><th>Misi</th><th>Level</th><th>⭐</th><th>Benar</th></tr></thead><tbody>${baris}</tbody></table></div></div>`;
+      ${lemah.length ? `<p class="ket" style="margin:12px 0 0">Perlu latihan tambahan: <b>${lemah.map(m => m.judul).join(", ")}</b> (akurasi terendah).</p>` : ""}
+      <p class="ket" style="margin:12px 0 0">📱 Data ini tersimpan di perangkat dan peramban ini saja. Bila anak bermain di HP/peramban lain, kemajuannya tidak tampil di sini; pindahkan lewat <b>Pengaturan → Unduh cadangan</b> lalu <b>Pulihkan</b> di perangkat ini.</p></div>
+    <div class="kartu"><h3>Aktivitas terakhir</h3>${akhir ? `<ul class="daftar-aktivitas">${akhir}</ul>` : '<p class="ket" style="margin:6px 0 0">Belum ada level yang diselesaikan di perangkat ini.</p>'}</div>
+    <div class="kartu"><h3>Kemajuan per misi</h3><p class="ket" style="margin:4px 0 8px"><b>Sedang di</b> = level yang sedang dikerjakan anak · <b>Lulus</b> = banyak level yang sudah lulus.</p><div style="overflow-x:auto"><table class="tabel-laporan"><thead><tr><th>Misi</th><th>Sedang di</th><th>Lulus</th><th>⭐</th><th>Benar</th></tr></thead><tbody>${baris}</tbody></table></div></div>`;
 }
 
 /* Materi & Level Soal: susunan pulau → pos → misi → 10 level, dengan contoh soal dan uji coba */
@@ -468,6 +479,16 @@ function hasilCoba() {
   layar.querySelector("#h-materi").addEventListener("click", () => { bunyi.klik(); kembaliKeMateri(id); });
   M = null; layarKini = "hasil"; if (lulus) bunyi.lulus(); else bunyi.gagal();
 }
+
+/* Kemajuan berubah di tab lain, atau aplikasi kembali dibuka: tampilkan data terbaru.
+   Pengaturan dan Materi tidak digambar ulang supaya isian/bagian yang terbuka tidak hilang. */
+function perbaruiTampilan() {
+  if (!segarkanData() || document.querySelector(".lapis")) return;
+  if (layarKini === "ortu") { if (tabOrtu === "dasbor") { pasangKepala(); isiOrtu(); } else pasangKepala(); return; }
+  if (["beranda", "piala", "pulau", "jalur"].includes(layarKini)) { const y = window.scrollY; tampil(layarKini, argKini); window.scrollTo(0, y); }
+}
+window.addEventListener("storage", e => { if (e.key === KUNCI_SIMPAN) perbaruiTampilan(); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") perbaruiTampilan(); });
 
 /* ================= Mulai ================= */
 tampil(S.profil ? "beranda" : "sambut");

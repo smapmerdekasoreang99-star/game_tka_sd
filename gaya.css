@@ -410,3 +410,9 @@ canvas#konfeti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-e
 @media (max-width: 480px) { .tk-baris > summary { padding: 12px 14px; } .tk-isi { padding: 0 14px 12px; } .lv-tombol { margin-left: 0; width: 100%; } .lv-tombol .tbl { flex: 1; } }
 .umpan.ulang-awal { margin-top: 10px; background: var(--emas-muda); border: 2px solid var(--emas); color: var(--emas-teks); }
 .umpan.ulang-awal h3 { color: var(--emas-teks); }
+.daftar-aktivitas { list-style: none; margin: 8px 0 0; padding: 0; }
+.daftar-aktivitas li { display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--garis); font-size: 15px; }
+.daftar-aktivitas li:last-child { border-bottom: 0; }
+.daftar-aktivitas li > span:first-child { flex: 0 0 100%; font-size: 12.5px; }
+.tabel-laporan td.angka { white-space: nowrap; }
+@media (max-width: 420px) { .tabel-laporan { font-size: 13px; } .tabel-laporan th, .tabel-laporan td { padding: 7px 3px; } .tabel-laporan th { font-size: 10.5px; letter-spacing: 0; } }
