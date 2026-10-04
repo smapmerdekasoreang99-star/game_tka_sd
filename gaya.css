@@ -157,9 +157,10 @@ input, select { font: inherit; }
 .main-atas .info b { display: block; font-family: var(--huruf-judul); font-size: 18px; color: var(--gelap); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lencana { display: inline-block; font-weight: 800; font-size: 13px; padding: 2px 10px; border-radius: 999px; }
 .tutup { width: 44px; height: 44px; border-radius: 50%; background: #fff; box-shadow: var(--bayang); font-size: 20px; color: var(--tinta-2); flex: none; }
-.titik-soal { display: flex; gap: 8px; justify-content: center; margin: 8px 0 4px; }
-.titik-soal i { width: 34px; height: 12px; border-radius: 999px; background: var(--garis); }
-.titik-soal i.benar { background: var(--hijau); } .titik-soal i.salah { background: var(--merah); } .titik-soal i.kini { background: var(--biru); animation: denyut 1.4s infinite; }
+.titik-soal { display: flex; gap: 6px; justify-content: center; margin: 8px 0 4px; flex-wrap: wrap; }
+.titik-soal i { flex: 0 1 34px; min-width: 10px; height: 12px; border-radius: 999px; background: var(--garis); }
+.titik-soal i.benar { background: var(--hijau); } .titik-soal i.salah { background: var(--merah); } .titik-soal i.pulih { background: var(--emas); }
+.sisa-salah { text-align: center; font-size: 14px; font-weight: 700; color: var(--gelap-2); margin-bottom: 4px; } .sisa-salah.ada { color: var(--merah); } .titik-soal i.kini { background: var(--biru); animation: denyut 1.4s infinite; }
 .kartu-soal { position: relative; }
 .kartu-soal .nomor { font-weight: 800; color: var(--biru-tua); font-size: 14px; letter-spacing: .04em; }
 .teks-soal { font-size: 20px; font-weight: 700; line-height: 1.55; margin: 6px 0 10px; overflow-wrap: anywhere; }
@@ -174,6 +175,28 @@ input, select { font: inherit; }
 .tabel-data th, .tabel-data td { border: 2px solid var(--garis-2); padding: 6px 12px; text-align: center; }
 .tabel-data th { background: var(--langit); }
 .tabel-data td:first-child { text-align: left; font-weight: 700; }
+
+/* Bacaan (Pulau Bahasa Indonesia) */
+.bacaan { background: var(--kertas-2); border-left: 5px solid var(--ungu); border-radius: var(--r2); padding: 12px 16px; margin: 8px 0 12px; font-size: 17px; line-height: 1.7; overflow-wrap: anywhere; }
+.bacaan h4 { font-family: var(--huruf-judul); font-size: 19px; text-align: center; margin: 0 0 6px; }
+.bacaan p { margin: 0 0 8px; } .bacaan p:last-child { margin-bottom: 0; }
+.bacaan .no { color: var(--ungu); }
+.bacaan .puisi p { text-align: center; font-style: italic; margin-bottom: 12px; }
+.bacaan .tabel-data { font-size: 15px; min-width: 0; margin: 6px auto 8px; }
+.bacaan .tabel-data th, .bacaan .tabel-data td { padding: 5px 8px; overflow-wrap: normal; word-break: normal; }
+.bacaan .tabel-data td:first-child { white-space: nowrap; }
+.daftar-bacaan { margin: 4px 0 8px; padding-left: 26px; } .daftar-bacaan li { margin: 2px 0; }
+.daftar-bacaan li::marker { color: var(--ungu); font-weight: 800; }
+.ket-bacaan, .catatan-tabel { font-size: 15px; color: var(--tinta-2); margin: 6px 0 2px; }
+.gulir { overflow-x: auto; }
+.kertas { background: #fff; border: 2px dashed var(--garis-2); border-radius: var(--r1); padding: 12px 14px; }
+.kertas h4 { letter-spacing: .05em; }
+.tabel-info { border-collapse: collapse; margin: 4px 0 10px; }
+.tabel-info td { padding: 2px 8px 2px 0; vertical-align: top; }
+.tabel-info td:first-child { white-space: nowrap; font-weight: 700; }
+.tabel-info td:first-child::after { content: " :"; }
+.ttd { text-align: right; font-style: italic; }
+.tabel-laporan tr.kelompok td { background: var(--langit); font-weight: 800; color: var(--biru-tua); }
 
 /* Jawaban isian */
 .layar-jawab { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 66px; background: var(--langit); border-radius: var(--r2);
@@ -345,3 +368,43 @@ canvas#konfeti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-e
   .hitung-mundur .angka { font-size: 38px; }
   .simpul-baris .label-simpul { font-size: 11px; padding: 2px 7px; }
 }
+
+/* Halaman orang tua: tiga tab */
+.tab-ortu { display: flex; gap: 6px; background: var(--langit-2); padding: 5px; border-radius: var(--r3); margin: 10px 0 4px; overflow-x: auto; }
+.tab-ortu button { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 6px 12px; border: 0; border-radius: var(--r2);
+  background: transparent; font: inherit; font-weight: 800; font-size: 15px; color: var(--tinta-2); cursor: pointer; white-space: nowrap; }
+.tab-ortu button[aria-selected="true"] { background: var(--kertas); color: var(--gelap); box-shadow: var(--bayang); }
+.tab-ortu button:focus-visible { outline: 3px solid var(--biru); outline-offset: 1px; }
+@media (max-width: 520px) { .tab-ortu button { flex: 1 1 0; flex-direction: column; gap: 2px; padding: 6px 4px; font-size: 12.5px; line-height: 1.2; white-space: normal; text-align: center; } .tab-ortu button span { font-size: 18px; } }
+
+/* Materi & Level Soal (meniru Tahapan Level di Matematika Dasar) */
+.modul-kartu { padding: 0; overflow: hidden; }
+.modul-kepala { display: flex; align-items: center; gap: 12px; padding: 16px 18px; color: #fff; background: linear-gradient(120deg, var(--md-a), var(--md-b)); }
+.modul-kepala .md { font-size: 26px; width: 48px; height: 48px; display: grid; place-items: center; border-radius: 12px; background: rgba(255,255,255,.16); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); flex: none; }
+.modul-kepala h2 { margin: 0; color: #fff; font-size: 19px; } .modul-kepala p { margin: 2px 0 0; color: rgba(255,255,255,.8); font-size: 14px; }
+.modul-mtk { --md-a: #1D2A3A; --md-b: #2F5D7C; } .modul-bin { --md-a: #4A2E86; --md-b: #7B4FD6; }
+.pos-sub { padding: 10px 18px 6px; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--tinta-2); background: var(--kertas-2); border-top: 1px solid var(--garis); }
+.tk-baris { border-top: 1px solid var(--garis); }
+.tk-baris > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 12px 18px; }
+.tk-baris > summary::-webkit-details-marker { display: none; }
+.tk-baris > summary:hover { background: var(--langit); }
+.tk-no { flex: none; width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; background: var(--langit); border: 1px solid var(--garis-2); }
+.tk-baris[open] .tk-no { background: var(--gelap); border-color: var(--gelap); }
+.tk-nama { flex: 1; min-width: 0; } .tk-nama b { display: block; font-size: 16px; color: var(--tinta); } .tk-nama span { font-size: 13px; color: var(--tinta-2); }
+.tk-panah { flex: none; width: 10px; height: 10px; border-right: 2px solid var(--tinta-3); border-bottom: 2px solid var(--tinta-3); transform: rotate(-45deg); transition: transform .15s; margin-right: 4px; }
+.tk-baris[open] .tk-panah { transform: rotate(45deg); }
+.tk-isi { padding: 0 18px 14px; }
+.lv-baris { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 0; border-bottom: 1px dashed var(--garis); }
+.lv-baris .lencana { flex: none; min-width: 74px; text-align: center; }
+.lv-baris .kt { flex: 1 1 160px; min-width: 0; font-size: 15px; } .lv-baris .kt small { display: block; color: var(--tinta-2); font-size: 13px; }
+.lv-bintang { font-size: 13px; font-weight: 700; color: var(--tinta-3); white-space: nowrap; } .lv-bintang.kini { color: var(--biru); }
+.lv-tombol { display: flex; gap: 6px; margin-left: auto; }
+.contoh-soal { background: var(--langit); border-radius: var(--r2); padding: 6px 14px; margin: 8px 0 4px; }
+.contoh-satu { padding: 10px 0; border-bottom: 1px solid var(--garis-2); } .contoh-satu:last-child { border-bottom: 0; }
+.contoh-satu .teks-soal { font-size: 16px; margin: 4px 0 6px; }
+.contoh-satu .bacaan { font-size: 15px; }
+.contoh-bacaan summary { cursor: pointer; font-weight: 800; color: var(--ungu); font-size: 14px; }
+.contoh-opsi { margin: 0 0 6px; padding-left: 26px; font-size: 15px; }
+.contoh-kunci { font-size: 14px; background: var(--hijau-muda); color: var(--hijau-tua); border-radius: var(--r1); padding: 6px 10px; }
+.contoh-kunci div { color: var(--tinta); }
+@media (max-width: 480px) { .tk-baris > summary { padding: 12px 14px; } .tk-isi { padding: 0 14px 12px; } .lv-tombol { margin-left: 0; width: 100%; } .lv-tombol .tbl { flex: 1; } }

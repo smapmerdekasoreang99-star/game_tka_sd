@@ -110,11 +110,18 @@ const svgBuka = (w, h, label) => `<svg viewBox="0 0 ${w} ${h}" class="gbr" role=
 const svgT = (x, y, s, o = "") => `<text x="${x}" y="${y}" ${o}>${s}</text>`;
 
 /* ---------- Pendaftaran misi ---------- */
+const PULAU = [
+  { id: "mtk", judul: "Matematika", ikon: "🏝️", ket: "Pilih misi mana saja. Setiap misi punya 10 level, dari <b>sangat mudah</b> sampai <b>Bos Terakhir</b>. Selesaikan level 10 untuk mendapat piala!" },
+  { id: "bin", judul: "Bahasa Indonesia", ikon: "📖", ket: "Setiap soal punya bacaan. Kuasai <b>tiga jurus membaca</b>: menemukan informasi, memahami isi, lalu menalar. Selesaikan level 10 untuk mendapat piala!" },
+];
 const POS = [
-  { id: "bil", no: 1, judul: "Bilangan", ikon: "🏝️", ket: "Pos paling sering keluar!" },
-  { id: "alj", no: 2, judul: "Aljabar", ikon: "🧩", ket: "Pola & teka-teki angka" },
-  { id: "ukr", no: 3, judul: "Pengukuran & Bangun", ikon: "📐", ket: "Ukur, hitung, bayangkan" },
-  { id: "dat", no: 4, judul: "Data & Peluang", ikon: "📊", ket: "Baca data seperti detektif" },
+  { id: "bil", pulau: "mtk", no: 1, judul: "Bilangan", ikon: "🏝️", ket: "Pos paling sering keluar!" },
+  { id: "alj", pulau: "mtk", no: 2, judul: "Aljabar", ikon: "🧩", ket: "Pola & teka-teki angka" },
+  { id: "ukr", pulau: "mtk", no: 3, judul: "Pengukuran & Bangun", ikon: "📐", ket: "Ukur, hitung, bayangkan" },
+  { id: "dat", pulau: "mtk", no: 4, judul: "Data & Peluang", ikon: "📊", ket: "Baca data seperti detektif" },
+  { id: "tem", pulau: "bin", no: 1, judul: "Jurus Menemukan", ikon: "🔍", ket: "Cari informasi yang tertulis di bacaan" },
+  { id: "pah", pulau: "bin", no: 2, judul: "Jurus Memahami", ikon: "💡", ket: "Makna kata, ide pokok, tokoh & latar" },
+  { id: "nal", pulau: "bin", no: 3, judul: "Jurus Menalar", ikon: "🧠", ket: "Simpulan, amanat, fakta & opini" },
 ];
 const MISI = [];
 /* Level 1–5 hanya isian singkat. Cetakan berbentuk pilihan yang ditulis di level 1–5
@@ -123,12 +130,12 @@ const keTKA = (f, L = 6) => Object.assign(f, { keLevel: L });
 function daftarMisi(pos, id, judul, ikon, tingkat) {
   for (let L = 1; L <= 5; L++) (tingkat[L] || []).filter(f => f.keLevel).forEach(f => { tingkat[f.keLevel].push(f); tingkat[L] = tingkat[L].filter(g => g !== f); });
   for (let L = 1; L <= 10; L++) if (!tingkat[L] || !tingkat[L].length) throw new Error(`Misi ${id} level ${L} kosong`);
-  MISI.push({ pos, id, judul, ikon, tingkat });
+  MISI.push({ pos, pulau: POS.find(p => p.id === pos).pulau, id, judul, ikon, tingkat });
 }
 const cariMisi = id => MISI.find(m => m.id === id);
 
 /* Kunci pembeda soal untuk riwayat */
-const kunciSoal = s => (s.teks + "|" + (s.opsi || s.pernyataan || []).slice().sort().join("|")).replace(/<[^>]+>/g, "").replace(/\s+/g, " ")
+const kunciSoal = s => ((s.bacaan || "") + "|" + s.teks + "|" + (s.opsi || s.pernyataan || []).slice().sort().join("|")).replace(/<[^>]+>/g, "").replace(/\s+/g, " ")
   + "|" + (s.gambar || "").replace(/\s+/g, " ");
 
 function buatSoal(idMisi, L, riwayat) {

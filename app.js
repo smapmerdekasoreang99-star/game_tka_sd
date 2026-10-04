@@ -4,7 +4,8 @@
 "use strict";
 
 const KUNCI_SIMPAN = "ptka_sd_v1";
-const SOAL_PER_LEVEL = 5, LULUS = 4, RIWAYAT_MAKS = 400;
+const SOAL_HARIAN = 5, RIWAYAT_MAKS = 400, PIN_ORTU = "ortu2026";
+const PILIHAN_SOAL = [5, 10, 15, 20], TOLERANSI_MAKS = 5;
 const AVATAR = ["🦊", "🐼", "🐯", "🐰", "🐸", "🦁", "🐧", "🐨", "🐱", "🐶", "🦄", "🐵"];
 const TINGKAT = [null, ["Sangat Mudah", "k1"], ["Sangat Mudah", "k1"], ["Mudah", "k2"], ["Mudah", "k2"], ["Sedang", "k3"], ["Sedang", "k3"],
   ["Sulit", "k4"], ["Setara TKA", "k5"], ["Di Atas TKA", "k6"], ["Bos Terakhir", "k6"]];
@@ -14,9 +15,12 @@ const SEMANGAT = ["Tidak apa-apa, kita belajar dari kesalahan!", "Hampir! Baca p
 const SARAN_UMUM = "Baca soalnya pelan-pelan. Garis bawahi angka dan kata pentingnya, lalu tulis langkahnya di kertas coretan.";
 
 /* ================= Data tersimpan ================= */
-const bawaan = () => ({ v: 1, profil: null, tka: "", suara: true, koin: 0, api: { n: 0, tgl: "" }, misi: {}, piala: {}, harian: { tgl: "", selesai: false }, riwayat: {}, log: [] });
+const bawaan = () => ({ v: 1, profil: null, tka: "", suara: true, koin: 0, api: { n: 0, tgl: "" }, misi: {}, piala: {}, harian: { tgl: "", selesai: false }, riwayat: {}, log: [], atur: { soal: 5, toleransi: 1, ulang: true } });
 function muatData() { try { const x = JSON.parse(localStorage.getItem(KUNCI_SIMPAN)); if (x && x.v === 1) return Object.assign(bawaan(), x); } catch (e) { /* kosong */ } return bawaan(); }
 let S = muatData();
+/* Aturan level dari halaman Orang Tua: jumlah soal, batas kesalahan, dan ulangi nomor yang salah */
+const atur = () => { const a = S.atur || {}, soal = PILIHAN_SOAL.includes(+a.soal) ? +a.soal : 5;
+  return { soal, toleransi: Math.max(0, Math.min(TOLERANSI_MAKS, soal - 1, Number.isInteger(+a.toleransi) ? +a.toleransi : 1)), ulang: a.ulang !== false }; };
 function simpanData() { try { localStorage.setItem(KUNCI_SIMPAN, JSON.stringify(S)); } catch (e) { tampilPesan("⚠️ Kemajuan belum bisa disimpan di perangkat ini."); } }
 
 const hariIni = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -30,7 +34,10 @@ const bintangMisi = id => dataMisi(id).bin.reduce((a, b) => a + b, 0);
 const totalBintang = () => MISI.reduce((s, m) => s + bintangMisi(m.id), 0);
 const misiSelesai = id => dataMisi(id).lv >= 10;
 const posSelesai = pid => MISI.filter(m => m.pos === pid).every(m => misiSelesai(m.id));
-const pulauSelesai = () => MISI.every(m => misiSelesai(m.id));
+const misiPulau = pid => MISI.filter(m => m.pulau === pid);
+const cariPulau = pid => PULAU.find(p => p.id === pid) || PULAU[0];
+const pulauSelesai = pid => misiPulau(pid).every(m => misiSelesai(m.id));
+const semuaSelesai = () => MISI.every(m => misiSelesai(m.id));
 const gelar = () => GELAR.filter(g => S.koin >= g[0]).pop()[1];
 const apiAktif = () => S.api.tgl && selisihHari(S.api.tgl, hariIni()) <= 1;
 
@@ -88,21 +95,29 @@ function pialaSVG(jenis, ikon = "") {
 
 /* ================= Kerangka layar ================= */
 const layar = document.getElementById("layar"), kepala = document.getElementById("kepala"), kepalaIsi = document.getElementById("kepala-isi"), nav = document.getElementById("nav");
-let layarKini = "";
-function pasangKepala(kembali) {
+let layarKini = "", izinOrtu = false;
+function pasangKepala(kembali, arg) {
   kepala.hidden = false;
-  kepalaIsi.innerHTML = `${kembali ? `<button class="kembali" data-ke="${kembali}" aria-label="Kembali">←</button>` : ""}
+  kepalaIsi.innerHTML = `${kembali ? `<button class="kembali" data-ke="${kembali}"${arg ? ` data-arg="${arg}"` : ""} aria-label="Kembali">←</button>` : ""}
     <div class="avatar" aria-hidden="true">${S.profil.avatar}</div>
     <div style="min-width:0"><div class="nama">${esc(S.profil.nama)}</div><div class="gelar">${gelar()}</div></div>
     <div class="kanan"><span class="chip" title="Koin">💰 ${fmt(S.koin)}</span><span class="chip ${apiAktif() ? "" : "api-mati"}" title="Hari berturut-turut">🔥 ${apiAktif() ? S.api.n : 0}</span></div>`;
 }
 function pasangNav(aktif) { nav.hidden = !aktif; nav.querySelectorAll("button").forEach(b => { if (b.dataset.ke === aktif) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function tampil(nama_, arg) {
-  layarKini = nama_; window.scrollTo(0, 0);
+  if (nama_ === "ortu" && !izinOrtu) return mintaPin();
+  izinOrtu = false; layarKini = nama_; window.scrollTo(0, 0);
   ({ sambut: lSambut, beranda: lBeranda, pulau: lPulau, jalur: lJalur, piala: lPiala, ortu: lOrtu }[nama_])(arg);
 }
 document.addEventListener("click", e => { const b = e.target.closest("[data-ke]"); if (b) { bunyi.klik(); tampil(b.dataset.ke, b.dataset.arg); } });
 function tampilPesan(t, ms = 2600) { document.querySelectorAll(".pesan").forEach(x => x.remove()); const d = document.createElement("div"); d.className = "pesan"; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), ms); }
+
+function mintaPin() {
+  const l = dialog(`<div style="font-size:48px">🔐</div><h2>Khusus orang tua</h2><p class="ket">Masukkan PIN untuk membuka halaman Orang Tua.</p><input class="isian-teks" id="pin-ortu" type="password" autocomplete="off" aria-label="PIN orang tua">`,
+    [["Buka", "tbl-utama", () => { if (pin === PIN_ORTU) { izinOrtu = true; tampil("ortu"); } else { bunyi.salah(); tampilPesan("PIN salah."); mintaPin(); } }], ["Batal", "tbl-putih", null]]);
+  let pin = ""; const i = l.querySelector("#pin-ortu");
+  i.addEventListener("input", e => (pin = e.target.value.trim())); i.addEventListener("keydown", e => { if (e.key === "Enter") l.querySelector("button[data-i='0']").click(); }); i.focus();
+}
 
 /* ================= Sambutan (pertama kali) ================= */
 function lSambut() {
@@ -134,20 +149,19 @@ function lBeranda() {
   const lanjut = mTer ? (() => { const L = Math.min(10, dataMisi(mTer.id).lv + 1); return misiSelesai(mTer.id) ? "" : `<button class="kartu misi" data-ke="jalur" data-arg="${mTer.id}" style="margin:0"><div class="ikon">${mTer.ikon}</div><div class="tengah"><div class="status">LANJUTKAN</div><h3>${mTer.judul}</h3><div class="status">Level ${L} · ${TINGKAT[L][0]}</div></div><div class="kanan" style="font-size:28px">▶️</div></button>`; })() : "";
   layar.innerHTML = `<div class="hitung-mundur">${hm}<div class="piala-mini">${pialaSVG(S.piala.raksasa ? "raksasa" : "kosong", S.piala.raksasa ? "👑" : "")}</div></div>
     ${lanjut}
-    <button class="kartu harian ${sudahHarian ? "sudah" : ""}" id="harian" style="width:100%;text-align:left"><div class="ikon-besar">${sudahHarian ? "✅" : "🎁"}</div><div><h3>${sudahHarian ? "Tantangan Harian selesai!" : "Tantangan Harian"}</h3><div class="ket">${sudahHarian ? "Kembali lagi besok untuk hadiah berikutnya." : "5 soal campuran · hadiah <b>+50 💰</b> dan api semangat 🔥"}</div></div></button>
+    <button class="kartu harian ${sudahHarian ? "sudah" : ""}" id="harian" style="width:100%;text-align:left"><div class="ikon-besar">${sudahHarian ? "✅" : "🎁"}</div><div><h3>${sudahHarian ? "Tantangan Harian selesai!" : "Tantangan Harian"}</h3><div class="ket">${sudahHarian ? "Kembali lagi besok untuk hadiah berikutnya." : "${SOAL_HARIAN} soal campuran · hadiah <b>+50 💰</b> dan api semangat 🔥"}</div></div></button>
     <h2 class="judul-bagian">🗺️ Pilih Pulau</h2>
-    <div class="pulau-grid">
-      <button class="pulau mtk" data-ke="pulau"><span class="gbr-pulau">🏝️</span><h3>Pulau Matematika</h3><span class="sub">${MISI.length} misi · ${persen}% dijelajahi · ⭐ ${totalBintang()}/${MISI.length * 30}</span><div class="batang"><i style="width:${persen}%"></i></div></button>
-      <div class="pulau bin kunci" aria-disabled="true"><span class="gbr-pulau">📖</span><h3>Pulau Bahasa Indonesia</h3><span class="sub">Bacaan cerita & informasi, tiga jurus membaca.</span><span class="lencana-kunci">🔒 Segera dibuka</span></div>
+    <div class="pulau-grid">${PULAU.map(p => { const ms = misiPulau(p.id), pr = Math.round(ms.filter(m => misiSelesai(m.id)).length / ms.length * 100), bt = ms.reduce((s, m) => s + bintangMisi(m.id), 0);
+      return `<button class="pulau ${p.id}" data-ke="pulau" data-arg="${p.id}"><span class="gbr-pulau">${p.ikon}</span><h3>Pulau ${p.judul}</h3><span class="sub">${ms.length} misi · ${pr}% dijelajahi · ⭐ ${bt}/${ms.length * 30}</span><div class="batang"><i style="width:${pr}%"></i></div></button>`; }).join("")}
     </div>`;
   layar.querySelector("#harian").addEventListener("click", () => { if (sudahHarian) { tampilPesan("Tantangan hari ini sudah selesai. Sampai besok! 👋"); return; } bunyi.klik(); mulaiHarian(); });
 }
 
-/* ================= Pulau Matematika ================= */
-function lPulau() {
-  pasangKepala("beranda"); pasangNav("beranda");
-  layar.innerHTML = `<h1 class="judul-bagian" style="font-size:28px;margin-top:16px">🏝️ Pulau Matematika</h1><p class="ket">Pilih misi mana saja. Setiap misi punya 10 level, dari <b>sangat mudah</b> sampai <b>Bos Terakhir</b>. Selesaikan level 10 untuk mendapat piala!</p>` +
-    POS.map(p => { const ms = MISI.filter(m => m.pos === p.id), sel = ms.filter(m => misiSelesai(m.id)).length;
+/* ================= Pulau ================= */
+function lPulau(pid) {
+  const pl = cariPulau(pid); pasangKepala("beranda"); pasangNav("beranda");
+  layar.innerHTML = `<h1 class="judul-bagian" style="font-size:28px;margin-top:16px">${pl.ikon} Pulau ${pl.judul}</h1><p class="ket">${pl.ket}</p>` +
+    POS.filter(p => p.pulau === pl.id).map(p => { const ms = MISI.filter(m => m.pos === p.id), sel = ms.filter(m => misiSelesai(m.id)).length;
       return `<div class="pos-kepala"><div class="bulat">${p.ikon}</div><div><h2>Pos ${p.no} · ${p.judul}</h2><div class="ket">${p.ket} · ${sel}/${ms.length} misi selesai</div></div><div class="piala-pos" title="Piala pos">${pialaSVG(S.piala["pos-" + p.id] ? "perak" : "kosong", S.piala["pos-" + p.id] ? p.ikon : "")}</div></div>` +
         ms.map(m => { const d = dataMisi(m.id), L = Math.min(10, d.lv + 1), done = misiSelesai(m.id), emas = S.piala["emas-" + m.id];
           const pips = d.bin.map((b, i) => `<i class="${b ? "b" + b : i === d.lv && !done ? "kini" : ""}">${i + 1}</i>`).join("");
@@ -159,7 +173,7 @@ function lPulau() {
 /* ================= Jalur level ================= */
 const XJALUR = [50, 74, 80, 62, 38, 22, 30, 54, 74, 50];
 function lJalur(id) {
-  const m = cariMisi(id); if (!m) return tampil("pulau"); pasangKepala("pulau"); pasangNav("beranda");
+  const m = cariMisi(id); if (!m) return tampil("beranda"); pasangKepala("pulau", m.pulau); pasangNav("beranda");
   const d = dataMisi(id), H = 112, pts = XJALUR.map((x, i) => `${x} ${i * H + H / 2}`);
   layar.innerHTML = `<div class="jalur-kepala"><div class="ikon-misi">${m.ikon}</div><h1>${m.judul}</h1><p class="ket">⭐ ${bintangMisi(id)}/30 · ${misiSelesai(id) ? (S.piala["emas-" + id] ? "🏆 Piala emas sudah didapat!" : "🏆 Piala didapat! Raih 30⭐ untuk piala emas.") : "Selesaikan Level 10 untuk mendapat piala 🏆"}</p></div>
     <div class="jalur" style="height:${10 * H}px"><svg class="lintasan" viewBox="0 0 100 ${10 * H}" preserveAspectRatio="none" aria-hidden="true"><path d="M${pts.join(" L")}" vector-effect="non-scaling-stroke"/></svg>
@@ -179,27 +193,28 @@ function ambilSoal(id, L) {
   (S.riwayat[id] ||= []).push(h); if (S.riwayat[id].length > RIWAYAT_MAKS) S.riwayat[id].splice(0, S.riwayat[id].length - RIWAYAT_MAKS);
   return s;
 }
-function mulaiLevel(id, L) { M = { misi: id, L, i: 0, hasil: [], petunjuk: false, harian: false }; soalBerikut(); }
+function mulaiLevel(id, L, coba = false) { const a = atur(); M = { misi: id, L, coba, i: 0, n: a.soal, toleransi: a.toleransi, ulang: a.ulang, salah: 0, tanda: [], petunjuk: false, harian: false }; soalBerikut(); }
 function mulaiHarian() {
   const buka = MISI.filter(m => !misiSelesai(m.id)), sumber = buka.length >= 3 ? buka : MISI;
-  const antrian = Array.from({ length: SOAL_PER_LEVEL }, () => { const m = acakDari(sumber), d = dataMisi(m.id); return { misi: m.id, L: Math.max(1, Math.min(10, d.lv + 1)) }; });
-  M = { harian: true, antrian, i: 0, hasil: [], petunjuk: false }; soalBerikut();
+  const antrian = Array.from({ length: SOAL_HARIAN }, () => { const m = acakDari(sumber), d = dataMisi(m.id); return { misi: m.id, L: Math.max(1, Math.min(10, d.lv + 1)) }; });
+  M = { harian: true, antrian, i: 0, n: SOAL_HARIAN, toleransi: SOAL_HARIAN, ulang: false, salah: 0, tanda: [], petunjuk: false }; soalBerikut();
 }
 function soalBerikut() {
-  if (M.i >= SOAL_PER_LEVEL) return selesaiLevel();
+  if (M.i >= M.n || (!M.harian && M.salah > M.toleransi)) return selesaiLevel();
   const id = M.harian ? M.antrian[M.i].misi : M.misi, L = M.harian ? M.antrian[M.i].L : M.L;
-  M.soal = ambilSoal(id, L); M.idKini = id; M.LKini = L; M.diperiksa = false;
+  M.soal = M.coba ? buatSoal(id, L, null) : ambilSoal(id, L); M.idKini = id; M.LKini = L; M.diperiksa = false;
   M.jawab = M.soal.bentuk === "isian" ? "" : M.soal.bentuk === "pg" ? null : M.soal.bentuk === "pgk" ? M.soal.opsi.map(() => false) : M.soal.pernyataan.map(() => null);
   lMain();
 }
 function lMain() {
   kepala.hidden = true; pasangNav(null); layarKini = "main";
   const s = M.soal, m = cariMisi(M.idKini), L = M.LKini, t = TINGKAT[L];
-  const titik = Array.from({ length: SOAL_PER_LEVEL }, (_, i) => `<i class="${i < M.hasil.length ? (M.hasil[i] ? "benar" : "salah") : i === M.i ? "kini" : ""}"></i>`).join("");
+  const titik = Array.from({ length: M.n }, (_, i) => `<i class="${i === M.i ? "kini" : M.tanda[i] || ""}"></i>`).join("");
+  const sisa = M.harian ? "" : `<div class="sisa-salah ${M.salah ? "ada" : ""}">${M.toleransi ? `Boleh salah ${M.toleransi}× · sudah ${M.salah}×` : "Harus benar semua"}${M.ulang ? " · nomor yang salah diulang" : ""}</div>`;
   layar.innerHTML = `<div class="main-atas"><button class="tutup" id="keluar" aria-label="Keluar">✕</button><div class="info"><b>${M.harian ? "🎁 Tantangan Harian" : m.ikon + " " + m.judul}</b>
-      ${M.harian ? `<span class="ket">${m.ikon} ${m.judul}</span>` : `<span class="lencana ${t[1]}">Level ${L} · ${t[0]}</span>`}</div><span class="chip" style="background:var(--emas-muda);color:var(--emas-teks)">💰 ${fmt(S.koin)}</span></div>
-    <div class="titik-soal" aria-label="Soal ${M.i + 1} dari ${SOAL_PER_LEVEL}">${titik}</div>
-    <div class="kartu kartu-soal" id="kartu-soal"><div class="nomor">SOAL ${M.i + 1} DARI ${SOAL_PER_LEVEL}</div><div class="teks-soal">${s.teks}</div>${s.gambar ? `<div class="wadah-gambar">${s.gambar}</div>` : ""}
+      ${M.harian ? `<span class="ket">${m.ikon} ${m.judul}</span>` : `<span class="lencana ${t[1]}">Level ${L} · ${t[0]}</span>`}</div>${M.coba ? '<span class="chip" style="background:var(--ungu-muda);color:var(--ungu)">🧪 Uji coba</span>' : `<span class="chip" style="background:var(--emas-muda);color:var(--emas-teks)">💰 ${fmt(S.koin)}</span>`}</div>
+    <div class="titik-soal" aria-label="Soal ${M.i + 1} dari ${M.n}">${titik}</div>${sisa}
+    <div class="kartu kartu-soal" id="kartu-soal"><div class="nomor">SOAL ${M.i + 1} DARI ${M.n}${M.ulangKe ? " · ULANGAN" : ""}</div>${s.bacaan ? `<div class="bacaan">${s.bacaan}</div>` : ""}<div class="teks-soal">${s.teks}</div>${s.gambar ? `<div class="wadah-gambar">${s.gambar}</div>` : ""}
       <div id="area-jawab">${areaJawab(s)}</div>
       <div class="aksi-soal"><button class="tbl tbl-burung" id="tbl-petunjuk" aria-label="Minta petunjuk Kiko" title="Petunjuk">🦉</button><button class="tbl tbl-hijau tbl-periksa" id="tbl-periksa">Periksa ✔</button></div>
       <div id="gelembung"></div><div id="umpan"></div></div>`;
@@ -248,14 +263,16 @@ function tunjukPetunjuk() { if (M.diperiksa) return; bunyi.klik(); M.petunjuk = 
 function sudahDijawab() { const s = M.soal, j = M.jawab; return s.bentuk === "isian" ? j.trim() !== "" && !/[,/ ]$/.test(j) : s.bentuk === "pg" ? j !== null : s.bentuk === "pgk" ? j.some(Boolean) : j.every(x => x !== null); }
 function periksaJawab() {
   if (!sudahDijawab()) { const k = document.getElementById("kartu-soal"); k.classList.remove("goyang"); void k.offsetWidth; k.classList.add("goyang"); gelembung(M.soal.bentuk === "bs" ? "Isi semua pernyataan dulu, ya!" : "Isi jawabanmu dulu, ya!"); return; }
-  const s = M.soal, r = periksa(s, M.jawab), d = dataMisi(M.idKini); M.diperiksa = true; M.hasil.push(r.benar);
-  d.total++; if (r.benar) { d.benar++; S.koin += 10; }
+  const s = M.soal, r = periksa(s, M.jawab), d = dataMisi(M.idKini); M.diperiksa = true; if (!r.benar) M.salah++;
+  M.tanda[M.i] = r.benar ? (M.tanda[M.i] === "salah" ? "pulih" : "benar") : "salah";
+  if (!M.coba) { d.total++; if (r.benar) { d.benar++; S.koin += 10; } }
   document.getElementById("gelembung").innerHTML = "";
   const u = document.getElementById("umpan");
-  if (r.benar) { bunyi.benar(); terbangKoin("+10 💰"); u.innerHTML = `<div class="umpan benar"><h3>✅ ${acakDari(PUJIAN)}</h3>${s.bahas ? `<div class="bahas">${s.bahas}</div>` : ""}</div>`; }
+  if (r.benar) { bunyi.benar(); if (!M.coba) terbangKoin("+10 💰"); u.innerHTML = `<div class="umpan benar"><h3>✅ ${acakDari(PUJIAN)}</h3>${s.bahas ? `<div class="bahas">${s.bahas}</div>` : ""}</div>`; }
   else { bunyi.salah(); u.innerHTML = `<div class="umpan salah"><h3>❌ Belum tepat</h3>${r.catatan ? `<div class="catatan">${r.catatan}</div>` : ""}<div>Jawaban yang benar:</div><div class="kunci-jawab">${tulisKunci(s)}</div>${s.bahas ? `<div class="bahas">${s.bahas}</div>` : ""}<div class="ket" style="margin-top:8px">🦉 ${acakDari(SEMANGAT)}</div></div>`; }
   tandaiPilihan(s);
-  const t = document.getElementById("tbl-periksa"); t.textContent = M.i + 1 >= SOAL_PER_LEVEL ? "Lihat hasil 🏁" : "Lanjut ➜"; t.className = "tbl tbl-biru tbl-periksa";
+  const habis = !M.harian && M.salah > M.toleransi; M.ulangi = !r.benar && M.ulang && !habis;
+  const t = document.getElementById("tbl-periksa"); t.textContent = habis ? "Lihat hasil 🏁" : M.ulangi ? "Ulangi nomor ini 🔁" : M.i + 1 >= M.n ? "Lihat hasil 🏁" : "Lanjut ➜"; t.className = "tbl tbl-biru tbl-periksa";
   document.getElementById("tbl-petunjuk").disabled = true; simpanData();
   setTimeout(() => u.scrollIntoView({ block: "nearest", behavior: "smooth" }), 60);
 }
@@ -265,25 +282,27 @@ function tandaiPilihan(s) {
   if (s.bentuk === "bs") document.querySelectorAll(".bs-tombol").forEach((g, i) => { g.querySelector(s.kunci[i] ? ".b" : ".s").style.outline = "3px solid var(--hijau)"; });
 }
 function terbangKoin(t) { const b = document.getElementById("tbl-periksa").getBoundingClientRect(), d = document.createElement("div"); d.className = "koin-terbang"; d.textContent = t; d.style.left = b.left + b.width / 2 - 30 + "px"; d.style.top = b.top - 10 + "px"; document.body.appendChild(d); setTimeout(() => d.remove(), 1000); }
-function lanjutSoal() { M.i++; soalBerikut(); }
+/* Nomor yang salah diulang dengan soal serupa (misi dan level sama), karena kuncinya sudah ditampilkan */
+function lanjutSoal() { if (M.ulangi) M.ulangKe = (M.ulangKe || 0) + 1; else { M.i++; M.ulangKe = 0; } soalBerikut(); }
 function konfirmasiKeluar() {
   dialog(`<div style="font-size:54px">🦉</div><h2>Mau berhenti?</h2><p class="ket">Kemajuan di level ini belum disimpan. Koin yang sudah didapat tetap milikmu.</p>`,
-    [["Lanjut bermain", "tbl-hijau", null], ["Keluar", "tbl-putih", () => { const id = M.harian ? null : M.misi; M = null; id ? tampil("jalur", id) : tampil("beranda"); }]]);
+    [["Lanjut bermain", "tbl-hijau", null], ["Keluar", "tbl-putih", () => { if (M.coba) return kembaliKeMateri(M.misi); const id = M.harian ? null : M.misi; M = null; id ? tampil("jalur", id) : tampil("beranda"); }]]);
 }
 
 /* ================= Selesai level ================= */
 function catatApi() { const h = hariIni(); if (S.api.tgl === h) return; S.api.n = S.api.tgl && selisihHari(S.api.tgl, h) === 1 ? S.api.n + 1 : 1; S.api.tgl = h; }
 function selesaiLevel() {
-  const benar = M.hasil.filter(Boolean).length; catatApi();
+  if (M.coba) return hasilCoba();
+  const benar = M.tanda.filter(x => x === "benar").length; catatApi();
   const antrean = [];
   if (M.harian) {
     S.harian = { tgl: hariIni(), selesai: true }; S.koin += 50; simpanData(); bunyi.lulus(); konfeti(1.8);
-    layar.innerHTML = `<div class="kartu hasil"><div style="font-size:64px">🎁</div><h1>Tantangan Harian Selesai!</h1><div class="ringkas"><div><b>${benar}/${SOAL_PER_LEVEL}</b>benar</div><div><b>+${50 + benar * 10}</b>koin 💰</div><div><b>${S.api.n} 🔥</b>hari berturut-turut</div></div>
+    layar.innerHTML = `<div class="kartu hasil"><div style="font-size:64px">🎁</div><h1>Tantangan Harian Selesai!</h1><div class="ringkas"><div><b>${benar}/${M.n}</b>benar</div><div><b>+${50 + benar * 10}</b>koin 💰</div><div><b>${S.api.n} 🔥</b>hari berturut-turut</div></div>
       <p class="ket">Kembali lagi besok untuk menjaga api semangatmu tetap menyala!</p><div class="tombol-tumpuk"><button class="tbl tbl-utama" data-ke="beranda">Kembali ke Peta 🗺️</button></div></div>`;
     M = null; return;
   }
-  const { misi: id, L } = M, d = dataMisi(id), lulus = benar >= LULUS;
-  let bintang = lulus ? (benar === 5 ? 3 : 2) - (M.petunjuk ? 1 : 0) : 0; if (lulus) bintang = Math.max(1, bintang);
+  const { misi: id, L, n, toleransi, salah } = M, d = dataMisi(id), lulus = salah <= toleransi, koinSoal = M.tanda.filter(x => x !== "salah").length * 10;
+  let bintang = lulus ? (salah === 0 ? 3 : 2) - (M.petunjuk ? 1 : 0) : 0; if (lulus) bintang = Math.max(1, bintang);
   const pertama = lulus && d.lv < L, naikBintang = bintang > d.bin[L - 1];
   if (naikBintang) d.bin[L - 1] = bintang; if (pertama) d.lv = L;
   const bonus = lulus ? (pertama ? 20 + L * 5 : 5) : 0; S.koin += bonus;
@@ -292,16 +311,17 @@ function selesaiLevel() {
   if (bintangMisi(id) === 30 && !S.piala["emas-" + id]) { S.piala["emas-" + id] = hariIni(); antrean.push(["emas", cariMisi(id).ikon, "Piala Emas!", `Sempurna! 30 bintang di <b>${cariMisi(id).judul}</b>. Pialamu berubah menjadi emas!`]); }
   const pos = POS.find(p => p.id === cariMisi(id).pos);
   if (posSelesai(pos.id) && !S.piala["pos-" + pos.id]) { S.piala["pos-" + pos.id] = hariIni(); antrean.push(["perak", pos.ikon, "Piala Pos!", `Semua misi di <b>Pos ${pos.no} · ${pos.judul}</b> selesai. Hebat sekali!`]); }
-  if (pulauSelesai() && !S.piala["pulau-mtk"]) { S.piala["pulau-mtk"] = hariIni(); antrean.push(["emas", "🏝️", "Piala Besar Pulau Matematika!", "Seluruh Pulau Matematika sudah kamu jelajahi!"]); }
-  if (pulauSelesai() && !S.piala.raksasa) { S.piala.raksasa = hariIni(); const sisa = S.tka ? selisihHari(hariIni(), S.tka) : null;
+  const pl = cariPulau(cariMisi(id).pulau);
+  if (pulauSelesai(pl.id) && !S.piala["pulau-" + pl.id]) { S.piala["pulau-" + pl.id] = hariIni(); antrean.push(["emas", pl.ikon, `Piala Besar Pulau ${pl.judul}!`, `Seluruh Pulau ${pl.judul} sudah kamu jelajahi!`]); }
+  if (semuaSelesai() && !S.piala.raksasa) { S.piala.raksasa = hariIni(); const sisa = S.tka ? selisihHari(hariIni(), S.tka) : null;
     antrean.push(["raksasa", "👑", "PIALA RAKSASA JUARA TKA!", sisa > 0 ? `Kamu meraihnya <b>${sisa} hari sebelum TKA</b>. Kamu benar-benar siap!` : "Kamu adalah Juara TKA sejati!"]); }
   simpanData();
   const t = TINGKAT[L], m = cariMisi(id);
   layar.innerHTML = `<div class="kartu hasil">${lulus ? `<div class="bintang-besar">${[1, 2, 3].map(i => `<span class="${i <= bintang ? "nyala" : ""}">⭐</span>`).join("")}</div><h1>${L === 10 ? "Bos Terakhir dikalahkan!" : bintang === 3 ? "Sempurna!" : "Level selesai!"}</h1>`
-    : `<div style="font-size:64px">💪</div><h1>Hampir berhasil!</h1><p class="ket">Butuh <b>${LULUS} jawaban benar</b> untuk naik level. Baca lagi pembahasannya, lalu coba lagi!</p>`}
-    <div class="ringkas"><div><b>${benar}/${SOAL_PER_LEVEL}</b>benar</div><div><b>+${benar * 10 + bonus}</b>koin 💰</div><div><b>${m.ikon} ${L}</b>${t[0]}</div></div>
-    ${lulus && M.petunjuk && benar >= 4 ? `<p class="ket">🦉 Coba tanpa petunjuk untuk mendapat ${benar === 5 ? "3" : "lebih banyak"} bintang!</p>` : ""}
-    ${lulus && benar === 4 && !M.petunjuk ? `<p class="ket">Jawab 5 benar untuk 3 bintang ⭐⭐⭐</p>` : ""}
+    : `<div style="font-size:64px">💪</div><h1>Hampir berhasil!</h1><p class="ket">${toleransi ? `Kesalahan paling banyak <b>${toleransi}×</b>` : "Semua soal harus <b>benar</b>"} untuk naik level. Baca lagi pembahasannya, lalu coba lagi!</p>`}
+    <div class="ringkas"><div><b>${benar}/${n}</b>benar langsung</div><div><b>${salah}×</b>salah</div><div><b>+${koinSoal + bonus}</b>koin 💰</div><div><b>${m.ikon} ${L}</b>${t[0]}</div></div>
+    ${lulus && M.petunjuk ? `<p class="ket">🦉 Coba tanpa petunjuk untuk mendapat ${salah === 0 ? "3" : "lebih banyak"} bintang!</p>` : ""}
+    ${lulus && salah > 0 && !M.petunjuk ? `<p class="ket">Jawab semua benar tanpa salah untuk 3 bintang ⭐⭐⭐</p>` : ""}
     <div class="tombol-tumpuk">${lulus && L < 10 ? `<button class="tbl tbl-utama" id="h-lanjut">Lanjut ke Level ${L + 1} ▶</button>` : ""}
       <button class="tbl ${lulus ? "tbl-putih" : "tbl-utama"}" id="h-ulang">${lulus ? "Ulangi untuk bintang lebih" : "Coba lagi 🔁"}</button>
       <button class="tbl tbl-putih" data-ke="jalur" data-arg="${id}">Kembali ke jalur level</button></div></div>`;
@@ -332,38 +352,96 @@ function lPiala() {
   layar.innerHTML = `<h1 class="judul-bagian" style="font-size:28px;margin-top:16px">🏆 Lemari Piala</h1><p class="ket">${jml ? `Kamu sudah mengumpulkan <b>${jml} piala</b>. Terus kumpulkan sampai Piala Raksasa!` : "Lemari masih kosong. Selesaikan Level 10 sebuah misi untuk mendapat piala pertamamu!"}</p>
     <div class="lemari">
       <div class="raksasa">${pialaSVG(S.piala.raksasa ? "raksasa" : "kosong", S.piala.raksasa ? "👑" : "")}<h3>Piala Raksasa Juara TKA</h3><div class="ket">${S.piala.raksasa ? "Diraih " + tglIndo(S.piala.raksasa) : `Selesaikan semua pulau${S.tka ? " sebelum " + tglIndo(S.tka) : " sebelum hari TKA"}`}</div></div>
-      <div class="rak"><h3>Piala Pulau</h3><div class="barisan"><div class="slot-piala besar">${pialaSVG(S.piala["pulau-mtk"] ? "emas" : "kosong", S.piala["pulau-mtk"] ? "🏝️" : "")}Matematika</div><div class="slot-piala besar">${pialaSVG("kosong")}Bahasa Indonesia (segera)</div></div></div>
-      ${POS.map(p => `<div class="rak"><h3>${p.ikon} Pos ${p.no} · ${p.judul}</h3><div class="barisan"><div class="slot-piala">${pialaSVG(S.piala["pos-" + p.id] ? "perak" : "kosong", S.piala["pos-" + p.id] ? p.ikon : "")}Piala Pos</div>
+      <div class="rak"><h3>Piala Pulau</h3><div class="barisan">${PULAU.map(p => `<div class="slot-piala besar">${pialaSVG(S.piala["pulau-" + p.id] ? "emas" : "kosong", S.piala["pulau-" + p.id] ? p.ikon : "")}${p.judul}</div>`).join("")}</div></div>
+      ${POS.map(p => `<div class="rak"><h3>${p.ikon} ${p.pulau === "mtk" ? `Pos ${p.no} · ` : ""}${p.judul}</h3><div class="barisan"><div class="slot-piala">${pialaSVG(S.piala["pos-" + p.id] ? "perak" : "kosong", S.piala["pos-" + p.id] ? p.ikon : "")}Piala Pos</div>
         ${MISI.filter(m => m.pos === p.id).map(m => `<div class="slot-piala" title="${m.judul}">${pialaSVG(S.piala["emas-" + m.id] ? "emas" : S.piala["misi-" + m.id] ? "perunggu" : "kosong", S.piala["misi-" + m.id] ? m.ikon : "")}${m.judul.split(/[ ,&]/)[0]}</div>`).join("")}</div></div>`).join("")}
     </div>
     <div class="kartu"><h3>Cara mendapat piala</h3><ul class="ket" style="margin:8px 0 0;padding-left:20px"><li>🥉 <b>Piala kecil</b>: selesaikan Level 10 sebuah misi.</li><li>🥇 <b>Piala emas kecil</b>: kumpulkan 30⭐ di satu misi.</li><li>🥈 <b>Piala pos</b>: selesaikan semua misi di satu pos.</li><li>🏆 <b>Piala pulau</b>: jelajahi seluruh pulau.</li><li>👑 <b>Piala Raksasa</b>: semua pulau selesai sebelum hari TKA!</li></ul></div>`;
 }
 const tglIndo = t => { const [y, m, d] = t.split("-").map(Number); return `${d} ${["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][m - 1]} ${y}`; };
 
-/* ================= Orang tua ================= */
+/* ================= Orang tua: Dasbor, Materi & Level Soal, Pengaturan ================= */
+let tabOrtu = "dasbor", bukaMisi = null;
+const TAB_ORTU = [["dasbor", "📊", "Dasbor Ortu"], ["materi", "📚", "Materi & Level Soal"], ["atur", "⚙️", "Pengaturan"]];
 function lOrtu() {
   pasangKepala(); pasangNav("ortu");
+  layar.innerHTML = `<h1 class="judul-bagian" style="font-size:28px;margin-top:16px">👨‍👩‍👧 Untuk Orang Tua</h1>
+    <div class="tab-ortu" role="tablist">${TAB_ORTU.map(([k, i, t]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${k === tabOrtu}"><span aria-hidden="true">${i}</span>${t}</button>`).join("")}</div>
+    <div id="isi-ortu" role="tabpanel"></div>`;
+  layar.querySelector(".tab-ortu").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (!b || b.dataset.tab === tabOrtu) return;
+    bunyi.klik(); tabOrtu = b.dataset.tab; layar.querySelectorAll("[data-tab]").forEach(x => x.setAttribute("aria-selected", x === b)); isiOrtu(); });
+  isiOrtu();
+}
+function isiOrtu() { ({ dasbor: ortuDasbor, materi: ortuMateri, atur: ortuAtur })[tabOrtu](document.getElementById("isi-ortu")); }
+
+function ortuDasbor(el) {
   const tot = MISI.reduce((s, m) => s + dataMisi(m.id).total, 0), ben = MISI.reduce((s, m) => s + dataMisi(m.id).benar, 0);
   const minggu = S.log.filter(x => Date.now() - x.t < 7 * 864e5).length;
-  const baris = MISI.map(m => { const d = dataMisi(m.id); return `<tr><td>${m.ikon} ${m.judul}</td><td class="angka">${d.lv}/10</td><td class="angka">${bintangMisi(m.id)}</td><td class="angka">${d.total ? Math.round(d.benar / d.total * 100) + "%" : "–"}</td></tr>`; }).join("");
+  const baris = PULAU.map(p => `<tr class="kelompok"><td colspan="4">${p.ikon} ${p.judul}</td></tr>` + misiPulau(p.id).map(m => { const d = dataMisi(m.id); return `<tr><td>${m.ikon} ${m.judul}</td><td class="angka">${d.lv}/10</td><td class="angka">${bintangMisi(m.id)}</td><td class="angka">${d.total ? Math.round(d.benar / d.total * 100) + "%" : "–"}</td></tr>`; }).join("")).join("");
   const lemah = MISI.filter(m => dataMisi(m.id).total >= 10).sort((a, b) => dataMisi(a.id).benar / dataMisi(a.id).total - dataMisi(b.id).benar / dataMisi(b.id).total).slice(0, 3);
-  layar.innerHTML = `<h1 class="judul-bagian" style="font-size:28px;margin-top:16px">👨‍👩‍👧 Untuk Orang Tua</h1>
-    <div class="kartu"><div class="statistik"><div><b>${fmt(tot)}</b>soal dikerjakan</div><div><b>${tot ? Math.round(ben / tot * 100) : 0}%</b>jawaban benar</div><div><b>${minggu}</b>level minggu ini</div></div>
+  el.innerHTML = `<div class="kartu"><div class="statistik"><div><b>${fmt(tot)}</b>soal dikerjakan</div><div><b>${tot ? Math.round(ben / tot * 100) : 0}%</b>jawaban benar</div><div><b>${minggu}</b>level minggu ini</div></div>
       ${lemah.length ? `<p class="ket" style="margin:12px 0 0">Perlu latihan tambahan: <b>${lemah.map(m => m.judul).join(", ")}</b> (akurasi terendah).</p>` : ""}</div>
-    <div class="kartu"><h3>Kemajuan per misi</h3><div style="overflow-x:auto"><table class="tabel-laporan"><thead><tr><th>Misi</th><th>Level</th><th>⭐</th><th>Benar</th></tr></thead><tbody>${baris}</tbody></table></div></div>
-    <div class="kartu"><h3>Pengaturan</h3>
+    <div class="kartu"><h3>Kemajuan per misi</h3><div style="overflow-x:auto"><table class="tabel-laporan"><thead><tr><th>Misi</th><th>Level</th><th>⭐</th><th>Benar</th></tr></thead><tbody>${baris}</tbody></table></div></div>`;
+}
+
+/* Materi & Level Soal: susunan pulau → pos → misi → 10 level, dengan contoh soal dan uji coba */
+const BENTUK = { isian: "Isian singkat", pg: "Pilihan ganda", bs: "Benar–salah", pgk: "PG kompleks" };
+function ortuMateri(el) {
+  const a = atur();
+  el.innerHTML = `<div class="materi"><div class="kartu"><p class="ket" style="margin:0">Setiap misi punya <b>10 level</b>: level 1–2 sangat mudah, 3–4 mudah, 5–6 sedang, 7 sulit, <b>8 setara TKA</b>, 9–10 di atas TKA. Mulai level 6 bentuk soalnya seperti TKA.
+      Aturan saat ini: <b>${a.soal} soal</b> per level, ${a.toleransi ? `boleh salah <b>${a.toleransi}×</b>` : "<b>harus benar semua</b>"}, nomor yang salah ${a.ulang ? "<b>diulang</b>" : "<b>tidak diulang</b>"} (ubah di tab Pengaturan).</p>
+      <p class="ket" style="margin:8px 0 0">Buka sebuah misi, lalu tekan <b>Contoh</b> untuk melihat soal acak beserta kuncinya, atau <b>Coba</b> untuk mengerjakan level itu sendiri. Uji coba tidak mengubah kemajuan dan koin anak.</p></div>` +
+    PULAU.map(p => { const ms = misiPulau(p.id), ps = POS.filter(x => x.pulau === p.id);
+      return `<div class="kartu modul-kartu modul-${p.id}"><div class="modul-kepala"><span class="md" aria-hidden="true">${p.ikon}</span><div><h2>Pulau ${p.judul}</h2><p>${ps.length} pos · ${ms.length} misi · ${ms.length * 10} level</p></div></div>` +
+        ps.map(pos => `<div class="pos-sub">${pos.ikon} ${p.id === "mtk" ? `Pos ${pos.no} · ` : ""}${pos.judul}</div>` + MISI.filter(m => m.pos === pos.id).map(m =>
+          `<details class="tk-baris" data-misi="${m.id}"><summary><span class="tk-no" aria-hidden="true">${m.ikon}</span><span class="tk-nama"><b>${m.judul}</b><span>Anak lulus ${dataMisi(m.id).lv}/10 level · ⭐ ${bintangMisi(m.id)}/30</span></span><span class="tk-panah" aria-hidden="true"></span></summary><div class="tk-isi"></div></details>`).join("")).join("") + `</div>`; }).join("") +
+    `<p class="ket" style="text-align:center">Materi mengikuti Kurikulum Merdeka Fase C. Level 8 setara soal TKA, level 9–10 di atasnya.<br>Cocokkan dengan kisi-kisi resmi TKA SD/MI dari Pusmendik.</p></div>`;
+  const w = el.querySelector(".materi");
+  // Daftar level baru dibuat saat misi dibuka (bentuk soal ditentukan dari beberapa soal acak)
+  w.addEventListener("toggle", e => { const d = e.target; if (d.matches?.("details[data-misi]") && d.open && !d.dataset.isi) { d.dataset.isi = 1; isiLevelMisi(d.querySelector(".tk-isi"), d.dataset.misi); } }, true);
+  w.addEventListener("click", e => { const b = e.target.closest("[data-contoh],[data-coba]"); if (!b) return; const id = b.closest("[data-misi]").dataset.misi; bunyi.klik();
+    if (b.dataset.coba) return mulaiLevel(id, +b.dataset.coba, true);
+    const L = +b.dataset.contoh, box = document.getElementById(`c-${id}-${L}`);
+    box.innerHTML = Array.from({ length: 3 }, () => contohHtml(buatSoal(id, L, null))).join(""); box.hidden = false; b.textContent = "Contoh lain"; });
+  if (bukaMisi) { const d = w.querySelector(`details[data-misi="${bukaMisi}"]`); bukaMisi = null; if (d) { d.open = true; setTimeout(() => d.scrollIntoView({ block: "start" }), 60); } }
+}
+function isiLevelMisi(box, id) {
+  const d = dataMisi(id);
+  box.innerHTML = Array.from({ length: 10 }, (_, i) => { const L = i + 1, t = TINGKAT[L], ada = new Set();
+    for (let k = 0; k < 8; k++) ada.add(buatSoal(id, L, null).bentuk);
+    const bentuk = Object.keys(BENTUK).filter(b => ada.has(b)).map(b => BENTUK[b]).join(", ");
+    const status = L <= d.lv ? `<span class="lv-bintang" title="Bintang anak">${"⭐".repeat(d.bin[i])}${"☆".repeat(3 - d.bin[i])}</span>` : L === d.lv + 1 ? '<span class="lv-bintang kini">sedang</span>' : '<span class="lv-bintang">belum</span>';
+    return `<div class="lv-baris"><span class="lencana ${t[1]}">Level ${L}</span><span class="kt"><b>${t[0]}</b><small>${bentuk}</small></span>${status}
+      <span class="lv-tombol"><button type="button" class="tbl tbl-putih tbl-kecil" data-contoh="${L}">Contoh</button><button type="button" class="tbl tbl-biru tbl-kecil" data-coba="${L}">Coba</button></span></div>
+      <div class="contoh-soal" id="c-${id}-${L}" hidden></div>`; }).join("");
+}
+function contohHtml(s) {
+  const opsi = s.bentuk === "pg" || s.bentuk === "pgk" ? `<ol class="contoh-opsi" type="A">${s.opsi.map(o => `<li>${o}</li>`).join("")}</ol>` : "";
+  const kunci = s.bentuk === "pg" ? `${"ABCDE"[s.kunci]}. ${s.opsi[s.kunci]}` : s.bentuk === "pgk" ? s.opsi.map((o, i) => (s.kunci[i] ? `${"ABCDE"[i]}. ${o}` : "")).filter(Boolean).join("<br>") : tulisKunci(s);
+  return `<div class="contoh-satu">${s.bacaan ? `<details class="contoh-bacaan"><summary>Lihat bacaan</summary><div class="bacaan">${s.bacaan}</div></details>` : ""}
+    <div class="teks-soal">${s.teks}</div>${s.gambar ? `<div class="wadah-gambar">${s.gambar}</div>` : ""}${opsi}<div class="contoh-kunci"><b>Kunci:</b><div>${kunci}</div></div></div>`;
+}
+
+function ortuAtur(el) {
+  el.innerHTML = `<div class="kartu"><h3>Profil &amp; aturan level</h3>
       <div class="baris-set"><label for="o-nama"><b>Nama anak</b></label><input id="o-nama" class="isian-teks" style="max-width:220px;min-height:44px" maxlength="20" value="${esc(S.profil.nama)}"></div>
       <div class="baris-set"><b>Teman petualangan</b><select id="o-av" class="isian-teks" style="max-width:120px;min-height:44px;font-size:24px">${AVATAR.map(a => `<option ${a === S.profil.avatar ? "selected" : ""}>${a}</option>`).join("")}</select></div>
       <div class="baris-set"><label for="o-tka"><b>Tanggal TKA</b><div class="ket">Untuk hitung mundur di beranda</div></label><input id="o-tka" type="date" class="isian-teks" style="max-width:200px;min-height:44px" value="${S.tka}"></div>
+      <div class="baris-set"><label for="o-soal"><b>Jumlah soal per level</b></label><select id="o-soal" class="isian-teks" style="max-width:130px;min-height:44px">${PILIHAN_SOAL.map(n => `<option value="${n}" ${n === atur().soal ? "selected" : ""}>${n} soal</option>`).join("")}</select></div>
+      <div class="baris-set"><label for="o-tol"><b>Toleransi kesalahan</b><div class="ket">Batas salah per level agar tetap naik level</div></label><select id="o-tol" class="isian-teks" style="max-width:160px;min-height:44px">${Array.from({ length: TOLERANSI_MAKS + 1 }, (_, i) => `<option value="${i}" ${i === atur().toleransi ? "selected" : ""}>${i ? i + "× salah" : "Tanpa salah"}</option>`).join("")}</select></div>
+      <div class="baris-set"><span><b>Ulangi nomor yang salah</b><div class="ket">Anak mengerjakan soal serupa di nomor itu sampai benar</div></span><button class="tbl tbl-kecil ${atur().ulang ? "tbl-hijau" : "tbl-putih"}" id="o-ulang" aria-pressed="${atur().ulang}">${atur().ulang ? "✅ Nyala" : "⏭️ Mati"}</button></div>
       <div class="baris-set"><b>Suara</b><button class="tbl tbl-kecil ${S.suara ? "tbl-hijau" : "tbl-putih"}" id="o-suara">${S.suara ? "🔊 Nyala" : "🔇 Mati"}</button></div>
       <button class="tbl tbl-biru tbl-lebar" id="o-simpan" style="margin-top:12px">Simpan pengaturan</button></div>
     <div class="kartu"><h3>Cadangan kemajuan</h3><p class="ket">Kemajuan tersimpan di peramban perangkat ini. Unduh cadangan secara berkala, atau untuk pindah ke perangkat lain.</p>
       <div class="baris-set"><button class="tbl tbl-putih tbl-kecil" id="o-unduh">⬇️ Unduh cadangan</button><label class="tbl tbl-putih tbl-kecil" style="cursor:pointer">⬆️ Pulihkan dari berkas<input type="file" id="o-pulih" accept=".json,application/json" hidden></label></div>
-      <div class="baris-set"><span class="ket">Mulai dari awal (semua kemajuan dihapus)</span><button class="tbl tbl-merah tbl-kecil" id="o-hapus">Hapus kemajuan</button></div></div>
-    <p class="ket" style="text-align:center">Materi mengikuti Kurikulum Merdeka Fase C. Level 8 setara soal TKA, level 9–10 di atasnya.<br>Cocokkan dengan kisi-kisi resmi TKA SD/MI dari Pusmendik.</p>`;
-  const $ = q => layar.querySelector(q);
+      <div class="baris-set"><span class="ket">Mulai dari awal (semua kemajuan dihapus)</span><button class="tbl tbl-merah tbl-kecil" id="o-hapus">Hapus kemajuan</button></div></div>`;
+  const $ = q => el.querySelector(q);
   $("#o-suara").addEventListener("click", e => { S.suara = !S.suara; e.target.textContent = S.suara ? "🔊 Nyala" : "🔇 Mati"; e.target.className = "tbl tbl-kecil " + (S.suara ? "tbl-hijau" : "tbl-putih"); simpanData(); bunyi.klik(); });
-  $("#o-simpan").addEventListener("click", () => { const n = $("#o-nama").value.trim(); if (!n) return tampilPesan("Nama tidak boleh kosong."); S.profil.nama = n; S.profil.avatar = $("#o-av").value; S.tka = $("#o-tka").value || ""; simpanData(); pasangKepala(); tampilPesan("✅ Pengaturan disimpan"); });
+  let ulang = atur().ulang;
+  $("#o-ulang").addEventListener("click", e => { ulang = !ulang; e.target.textContent = ulang ? "✅ Nyala" : "⏭️ Mati"; e.target.className = "tbl tbl-kecil " + (ulang ? "tbl-hijau" : "tbl-putih"); e.target.setAttribute("aria-pressed", ulang); bunyi.klik(); });
+  $("#o-simpan").addEventListener("click", () => { const n = $("#o-nama").value.trim(); if (!n) return tampilPesan("Nama tidak boleh kosong.");
+    const soal = +$("#o-soal").value, tol = +$("#o-tol").value; if (tol >= soal) return tampilPesan("Toleransi harus lebih kecil dari jumlah soal.");
+    S.profil.nama = n; S.profil.avatar = $("#o-av").value; S.tka = $("#o-tka").value || ""; S.atur = { soal, toleransi: tol, ulang }; simpanData(); pasangKepala(); tampilPesan("✅ Pengaturan disimpan"); });
   $("#o-unduh").addEventListener("click", async () => { const nm = `petualangan-tka-${S.profil.nama.replace(/\W+/g, "-").toLowerCase()}-${hariIni()}.json`; try { await simpanBerkas(JSON.stringify(S), nm, "application/json"); tampilPesan(pesanSimpan("diunduh", nm), 4000); } catch (e) { tampilPesan("Unduhan gagal. Jika memakai VPN atau ekstensi peramban, matikan dulu lalu coba lagi.", 5000); } });
   $("#o-pulih").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (x.v !== 1 || !x.profil) throw 0;
       dialog(`<div style="font-size:48px">⬆️</div><h2>Pulihkan cadangan?</h2><p class="ket">Kemajuan <b>${esc(x.profil.nama)}</b> akan menggantikan kemajuan di perangkat ini.</p>`, [["Ya, pulihkan", "tbl-utama", () => { S = Object.assign(bawaan(), x); simpanData(); tampilPesan("✅ Cadangan dipulihkan"); tampil("beranda"); }], ["Batal", "tbl-putih", null]]);
@@ -371,6 +449,18 @@ function lOrtu() {
   $("#o-hapus").addEventListener("click", () => { const l = dialog(`<div style="font-size:48px">⚠️</div><h2>Hapus semua kemajuan?</h2><p class="ket">Ketik <b>HAPUS</b> untuk memastikan. Unduh cadangan dulu bila perlu.</p><input class="isian-teks" id="konf-hapus" autocomplete="off">`,
     [["Hapus", "tbl-merah", () => { if (konf !== "HAPUS") { tampilPesan("Tidak dihapus: ketik HAPUS dengan huruf besar."); return; } localStorage.removeItem(KUNCI_SIMPAN); S = bawaan(); tampil("sambut"); }], ["Batal", "tbl-putih", null]]);
     let konf = ""; l.querySelector("#konf-hapus").addEventListener("input", e => (konf = e.target.value.trim())); l.querySelector("#konf-hapus").focus(); });
+}
+
+/* Uji coba orang tua: tidak memakai riwayat soal, tidak mengubah kemajuan, koin, maupun api */
+function kembaliKeMateri(id) { M = null; izinOrtu = true; tabOrtu = "materi"; bukaMisi = id; tampil("ortu"); }
+function hasilCoba() {
+  const { misi: id, L, n, toleransi, salah } = M, benar = M.tanda.filter(x => x === "benar").length, lulus = salah <= toleransi, m = cariMisi(id);
+  layar.innerHTML = `<div class="kartu hasil"><div style="font-size:64px">🧪</div><h1>Uji coba ${lulus ? "lulus" : "belum lulus"}</h1><p class="ket">${m.ikon} ${m.judul} · Level ${L} · ${TINGKAT[L][0]}<br>Hasil uji coba tidak mengubah kemajuan dan koin anak.</p>
+    <div class="ringkas"><div><b>${benar}/${n}</b>benar langsung</div><div><b>${salah}×</b>salah</div><div><b>${toleransi}×</b>batas salah</div></div>
+    <div class="tombol-tumpuk"><button class="tbl tbl-utama" id="h-ulang">Coba lagi 🔁</button><button class="tbl tbl-putih" id="h-materi">Kembali ke Materi &amp; Level Soal</button></div></div>`;
+  layar.querySelector("#h-ulang").addEventListener("click", () => { bunyi.klik(); mulaiLevel(id, L, true); });
+  layar.querySelector("#h-materi").addEventListener("click", () => { bunyi.klik(); kembaliKeMateri(id); });
+  M = null; layarKini = "hasil"; if (lulus) bunyi.lulus(); else bunyi.gagal();
 }
 
 /* ================= Mulai ================= */
