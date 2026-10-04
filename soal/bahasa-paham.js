@@ -209,36 +209,85 @@ daftarMisi("pah", "bi4", "Makna kata & ungkapan", "🔤", {
 });
 
 /* ================= Misi: Ide pokok & urutan ================= */
-/* Paragraf dengan kalimat utama yang jelas. akhir = kalimat utama bila diletakkan di akhir paragraf (induktif). */
+/* Paragraf dengan kalimat utama yang jelas. akhir = kalimat utama bila diletakkan di akhir paragraf (induktif).
+   jd = judul paragraf { b, s }. g = kelompok topik berdekatan: kalimat dari paragraf segolongan tidak dijadikan
+   "kalimat sumbang" karena bisa terasa padu. */
 const PARAGRAF = [
-  { ide: "manfaat olahraga bagi tubuh", utama: "Olahraga memiliki banyak manfaat bagi tubuh.", akhir: "Jadi, olahraga sangat bermanfaat bagi tubuh.",
-    jelas: ["Olahraga membuat otot dan tulang menjadi kuat.", "Jantung pun dapat bekerja lebih baik.", "Selain itu, tidur kita menjadi lebih nyenyak setelah berolahraga."], s: ["otot dan tulang yang kuat", "cara tidur yang nyenyak", "kerja jantung manusia"] },
+  { ide: "manfaat olahraga bagi tubuh", utama: "Olahraga memiliki banyak manfaat bagi tubuh.", akhir: "Jadi, olahraga sangat bermanfaat bagi tubuh.", g: "sehat",
+    jelas: ["Olahraga membuat otot dan tulang menjadi kuat.", "Jantung pun dapat bekerja lebih baik.", "Selain itu, tidur kita menjadi lebih nyenyak setelah berolahraga."], s: ["otot dan tulang yang kuat", "cara tidur yang nyenyak", "kerja jantung manusia"],
+    jd: { b: "Manfaat Olahraga bagi Tubuh", s: ["Jantung Manusia", "Lomba Lari Antarkelas", "Cara Membuat Jus Buah"] } },
   { ide: "pasar tradisional yang selalu ramai pada pagi hari", utama: "Pasar tradisional di desa kami selalu ramai pada pagi hari.", akhir: "Begitulah, pasar tradisional di desa kami selalu ramai pada pagi hari.",
-    jelas: ["Para pedagang sudah menata dagangan sejak subuh.", "Pembeli berdatangan untuk membeli sayur, ikan, dan buah.", "Suara tawar-menawar terdengar di mana-mana."], s: ["pedagang yang datang sejak subuh", "harga sayur dan ikan", "cara tawar-menawar"] },
+    jelas: ["Para pedagang sudah menata dagangan sejak subuh.", "Pembeli berdatangan untuk membeli sayur, ikan, dan buah.", "Suara tawar-menawar terdengar di mana-mana."], s: ["pedagang yang datang sejak subuh", "harga sayur dan ikan", "cara tawar-menawar"],
+    jd: { b: "Ramainya Pasar Tradisional pada Pagi Hari", s: ["Harga Ikan Laut", "Toko Sepatu Baru", "Bermain di Taman Kota"] } },
   { ide: "manfaat membaca buku", utama: "Membaca buku memberikan banyak manfaat.", akhir: "Dengan demikian, membaca buku memberikan banyak manfaat.",
-    jelas: ["Dengan membaca, pengetahuan kita bertambah.", "Kosakata kita juga semakin kaya.", "Membaca cerita bahkan dapat melatih daya khayal."], s: ["kosakata yang kaya", "buku cerita di perpustakaan", "daya khayal anak-anak"] },
+    jelas: ["Dengan membaca, pengetahuan kita bertambah.", "Kosakata kita juga semakin kaya.", "Membaca cerita bahkan dapat melatih daya khayal."], s: ["kosakata yang kaya", "buku cerita di perpustakaan", "daya khayal anak-anak"],
+    jd: { b: "Manfaat Membaca Buku", s: ["Toko Alat Tulis", "Lomba Menggambar", "Kamus Bahasa Inggris"] } },
   { ide: "kucing disukai sebagai hewan peliharaan", utama: "Kucing banyak disukai sebagai hewan peliharaan.", akhir: "Itulah sebabnya kucing banyak disukai sebagai hewan peliharaan.",
-    jelas: ["Bulunya lembut dan tingkahnya lucu.", "Kucing juga mudah dirawat.", "Selain itu, kucing dapat membantu mengusir tikus di rumah."], s: ["bulu kucing yang lembut", "cara mengusir tikus", "perawatan hewan"] },
+    jelas: ["Bulunya lembut dan tingkahnya lucu.", "Kucing juga mudah dirawat.", "Selain itu, kucing dapat membantu mengusir tikus di rumah."], s: ["bulu kucing yang lembut", "cara mengusir tikus", "perawatan hewan"],
+    jd: { b: "Kucing, Hewan Peliharaan Kesayangan", s: ["Cara Menangkap Tikus", "Kebun Binatang Kota", "Ikan Hias di Akuarium"] } },
   { ide: "siswa menjaga kebersihan kelas bersama-sama", utama: "Seluruh siswa ikut menjaga kebersihan kelas.", akhir: "Jadi, seluruh siswa ikut menjaga kebersihan kelas.",
-    jelas: ["Setiap hari ada regu piket yang menyapu lantai.", "Siswa membuang sampah ke tempat sampah.", "Meja dan kursi dirapikan sebelum pulang."], s: ["regu piket yang menyapu", "tempat sampah di kelas", "meja dan kursi yang rapi"] },
-  { ide: "pentingnya sarapan sebelum sekolah", utama: "Sarapan sangat penting sebelum berangkat sekolah.", akhir: "Oleh karena itu, sarapan sangat penting sebelum berangkat sekolah.",
-    jelas: ["Sarapan memberi tenaga untuk belajar.", "Anak yang sarapan lebih mudah berkonsentrasi.", "Tanpa sarapan, perut terasa lapar dan badan lemas saat pelajaran."], s: ["perut yang lapar", "tenaga untuk bermain", "pelajaran di sekolah"] },
-  { ide: "penyebab terjadinya banjir", utama: "Banjir dapat terjadi karena beberapa sebab.", akhir: "Jadi, banjir dapat terjadi karena beberapa sebab.",
-    jelas: ["Hujan turun sangat deras dalam waktu lama.", "Selokan tersumbat oleh sampah.", "Pohon-pohon di hulu sungai banyak ditebang."], s: ["hujan yang deras", "sampah di selokan", "pohon di hulu sungai"] },
+    jelas: ["Setiap hari ada regu piket yang menyapu lantai.", "Siswa membuang sampah ke tempat sampah.", "Meja dan kursi dirapikan sebelum pulang."], s: ["regu piket yang menyapu", "tempat sampah di kelas", "meja dan kursi yang rapi"],
+    jd: { b: "Bersama Menjaga Kebersihan Kelas", s: ["Jadwal Pelajaran Hari Senin", "Kantin Sekolah yang Ramai", "Meja Guru yang Baru"] } },
+  { ide: "pentingnya sarapan sebelum sekolah", utama: "Sarapan sangat penting sebelum berangkat sekolah.", akhir: "Oleh karena itu, sarapan sangat penting sebelum berangkat sekolah.", g: "sehat",
+    jelas: ["Sarapan memberi tenaga untuk belajar.", "Anak yang sarapan lebih mudah berkonsentrasi.", "Tanpa sarapan, perut terasa lapar dan badan lemas saat pelajaran."], s: ["perut yang lapar", "tenaga untuk bermain", "pelajaran di sekolah"],
+    jd: { b: "Pentingnya Sarapan Pagi", s: ["Makan Malam Bersama", "Pelajaran Olahraga", "Resep Kue Lapis"] } },
+  { ide: "penyebab terjadinya banjir", utama: "Banjir dapat terjadi karena beberapa sebab.", akhir: "Jadi, banjir dapat terjadi karena beberapa sebab.", g: "air",
+    jelas: ["Hujan turun sangat deras dalam waktu lama.", "Selokan tersumbat oleh sampah.", "Pohon-pohon di hulu sungai banyak ditebang."], s: ["hujan yang deras", "sampah di selokan", "pohon di hulu sungai"],
+    jd: { b: "Penyebab Banjir", s: ["Musim Kemarau Panjang", "Lomba Perahu di Sungai", "Indahnya Hujan Sore"] } },
   { ide: "keindahan pantai di desa nelayan", utama: "Pantai di desa nelayan itu sangat indah.", akhir: "Sungguh, pantai di desa nelayan itu sangat indah.",
-    jelas: ["Pasirnya putih dan bersih.", "Airnya jernih sehingga ikan-ikan kecil terlihat.", "Saat sore, matahari terbenam dengan warna jingga yang memesona."], s: ["pasir yang putih", "ikan-ikan kecil", "matahari terbenam"] },
-  { ide: "manfaat pohon di sekitar rumah", utama: "Pohon di sekitar rumah memiliki banyak manfaat.", akhir: "Jadi, pohon di sekitar rumah memiliki banyak manfaat.",
-    jelas: ["Daunnya yang rimbun membuat halaman teduh.", "Pohon menghasilkan udara yang segar.", "Akarnya menyerap air hujan sehingga mencegah genangan."], s: ["halaman yang teduh", "air hujan", "daun yang rimbun"] },
-  { ide: "warga bergotong royong membangun pos ronda", utama: "Warga kampung bergotong royong membangun pos ronda.", akhir: "Begitulah, warga kampung bergotong royong membangun pos ronda.",
-    jelas: ["Bapak-bapak mengangkut kayu dan semen.", "Ibu-ibu menyiapkan makanan dan minuman.", "Anak-anak membantu membersihkan sisa bahan bangunan."], s: ["kayu dan semen", "makanan untuk warga", "sisa bahan bangunan"] },
-  { ide: "cara menghemat air di rumah", utama: "Ada beberapa cara menghemat air di rumah.", akhir: "Itulah beberapa cara menghemat air di rumah.",
-    jelas: ["Matikan keran setelah digunakan.", "Gunakan gayung saat mandi agar air tidak terbuang.", "Air bekas mencuci sayur dapat dipakai untuk menyiram tanaman."], s: ["keran air", "mandi dengan gayung", "menyiram tanaman"] },
-  { ide: "kegemaran Sari menggambar", utama: "Sari sangat gemar menggambar.", akhir: "Jelaslah bahwa Sari sangat gemar menggambar.",
-    jelas: ["Ia selalu membawa buku gambar ke mana pun pergi.", "Setiap ada waktu luang, ia menggambar pemandangan atau hewan.", "Kamarnya pun penuh dengan gambar buatannya sendiri."], s: ["buku gambar Sari", "kamar Sari", "gambar pemandangan"] },
+    jelas: ["Pasirnya putih dan bersih.", "Airnya jernih sehingga ikan-ikan kecil terlihat.", "Saat sore, matahari terbenam dengan warna jingga yang memesona."], s: ["pasir yang putih", "ikan-ikan kecil", "matahari terbenam"],
+    jd: { b: "Indahnya Pantai Desa Nelayan", s: ["Cara Menangkap Ikan", "Pasar Ikan di Kota", "Mendaki Gunung"] } },
+  { ide: "manfaat pohon di sekitar rumah", utama: "Pohon di sekitar rumah memiliki banyak manfaat.", akhir: "Jadi, pohon di sekitar rumah memiliki banyak manfaat.", g: "air",
+    jelas: ["Daunnya yang rimbun membuat halaman teduh.", "Pohon menghasilkan udara yang segar.", "Akarnya menyerap air hujan sehingga mencegah genangan."], s: ["halaman yang teduh", "air hujan", "daun yang rimbun"],
+    jd: { b: "Manfaat Pohon di Sekitar Rumah", s: ["Cara Menebang Pohon", "Daun yang Berguguran", "Taman Bunga Kota"] } },
+  { ide: "warga bergotong royong membangun pos ronda", utama: "Warga kampung bergotong royong membangun pos ronda.", akhir: "Begitulah, warga kampung bergotong royong membangun pos ronda.", g: "kampung",
+    jelas: ["Bapak-bapak mengangkut kayu dan semen.", "Ibu-ibu menyiapkan makanan dan minuman.", "Anak-anak membantu membersihkan sisa bahan bangunan."], s: ["kayu dan semen", "makanan untuk warga", "sisa bahan bangunan"],
+    jd: { b: "Gotong Royong Membangun Pos Ronda", s: ["Ibu-Ibu Memasak", "Harga Semen dan Kayu", "Pasar Malam di Kampung"] } },
+  { ide: "cara menghemat air di rumah", utama: "Ada beberapa cara menghemat air di rumah.", akhir: "Itulah beberapa cara menghemat air di rumah.", g: "air",
+    jelas: ["Matikan keran setelah digunakan.", "Gunakan gayung saat mandi agar air tidak terbuang.", "Air bekas mencuci sayur dapat dipakai untuk menyiram tanaman."], s: ["keran air", "mandi dengan gayung", "menyiram tanaman"],
+    jd: { b: "Cara Menghemat Air di Rumah", s: ["Banjir di Kota", "Kolam Renang Baru", "Bermain Air di Sungai"] } },
+  { ide: "kegemaran Sari menggambar", utama: "Sari sangat gemar menggambar.", akhir: "Jelaslah bahwa Sari sangat gemar menggambar.", g: "tokoh",
+    jelas: ["Ia selalu membawa buku gambar ke mana pun pergi.", "Setiap ada waktu luang, ia menggambar pemandangan atau hewan.", "Kamarnya pun penuh dengan gambar buatannya sendiri."], s: ["buku gambar Sari", "kamar Sari", "gambar pemandangan"],
+    jd: { b: "Sari Gemar Menggambar", s: ["Kamar Tidur Sari", "Toko Buku Gambar", "Sari Pandai Menyanyi"] } },
+  { ide: "perpustakaan sekolah yang nyaman", utama: "Perpustakaan sekolah kami sangat nyaman.", akhir: "Jadi, perpustakaan sekolah kami sangat nyaman.",
+    jelas: ["Ruangannya sejuk dan terang.", "Buku-bukunya tersusun rapi di rak.", "Ada karpet dan bantal untuk membaca sambil duduk."], s: ["rak buku yang rapi", "karpet dan bantal", "ruangan yang terang"],
+    jd: { b: "Perpustakaan Sekolah yang Nyaman", s: ["Toko Karpet dan Bantal", "Lampu Kelas yang Rusak", "Lomba Bercerita"] } },
+  { ide: "kegunaan sapi bagi petani", utama: "Sapi sangat berguna bagi petani.", akhir: "Itulah sebabnya sapi sangat berguna bagi petani.",
+    jelas: ["Sapi dapat membantu membajak sawah.", "Kotorannya dapat diolah menjadi pupuk.", "Susu sapi juga dapat dijual untuk menambah penghasilan."], s: ["pupuk dari kotoran sapi", "harga susu sapi", "sawah yang luas"],
+    jd: { b: "Sapi, Hewan yang Berguna bagi Petani", s: ["Harga Susu di Pasar", "Kebun Sayur Pak Tani", "Lomba Pacuan Kuda"] } },
+  { ide: "persiapan warga menyambut Hari Kemerdekaan", utama: "Warga kampung bersiap menyambut Hari Kemerdekaan.", akhir: "Begitulah, warga kampung bersiap menyambut Hari Kemerdekaan.", g: "kampung",
+    jelas: ["Bendera merah putih dipasang di depan setiap rumah.", "Gapura kampung dicat ulang dengan warna merah dan putih.", "Panitia menyiapkan berbagai lomba untuk anak-anak."], s: ["bendera di depan rumah", "gapura kampung", "lomba untuk anak-anak"],
+    jd: { b: "Menyambut Hari Kemerdekaan", s: ["Gapura yang Rusak", "Liburan Akhir Tahun", "Toko Cat di Kampung"] } },
+  { ide: "Dika anak yang rajin", utama: "Dika adalah anak yang rajin.", akhir: "Jelaslah bahwa Dika adalah anak yang rajin.", g: "tokoh",
+    jelas: ["Setiap pagi, ia membantu ibu menyapu halaman.", "Sepulang sekolah, ia langsung mengerjakan PR.", "Ia juga tidak pernah lupa merapikan tempat tidurnya."], s: ["halaman rumah yang bersih", "PR dari sekolah", "tempat tidur Dika"],
+    jd: { b: "Dika Anak yang Rajin", s: ["Halaman Rumah Dika", "PR Matematika", "Dika Pandai Bernyanyi"] } },
+  { ide: "bahaya sampah plastik bagi lingkungan", utama: "Sampah plastik berbahaya bagi lingkungan.", akhir: "Jadi, sampah plastik berbahaya bagi lingkungan.", g: "air",
+    jelas: ["Plastik sangat sulit terurai di dalam tanah.", "Sampah plastik di selokan dapat menyebabkan banjir.", "Hewan laut bisa mati karena memakan plastik."], s: ["hewan laut", "selokan yang tersumbat", "tanah di kebun"],
+    jd: { b: "Bahaya Sampah Plastik", s: ["Hewan-Hewan di Laut", "Cara Membuat Layang-Layang", "Kebun Sekolah"] } },
+  { ide: "kebiasaan baik sebelum tidur", utama: "Ada beberapa kebiasaan baik sebelum tidur.", akhir: "Itulah beberapa kebiasaan baik sebelum tidur.",
+    jelas: ["Kita menggosok gigi agar gigi tetap sehat.", "Kita juga menyiapkan buku untuk pelajaran besok.", "Jangan lupa berdoa sebelum memejamkan mata."], s: ["gigi yang sehat", "buku pelajaran", "mata yang mengantuk"],
+    jd: { b: "Kebiasaan Baik sebelum Tidur", s: ["Mimpi yang Indah", "Pasta Gigi Baru", "Bangun Kesiangan"] } },
+  { ide: "lebah sebagai serangga yang bermanfaat", utama: "Lebah adalah serangga yang bermanfaat.", akhir: "Jadi, lebah adalah serangga yang bermanfaat.",
+    jelas: ["Lebah menghasilkan madu yang menyehatkan.", "Saat mengisap sari bunga, lebah membantu penyerbukan.", "Lilin dari sarang lebah juga dapat dimanfaatkan manusia."], s: ["madu yang menyehatkan", "sari bunga", "sarang lebah"],
+    jd: { b: "Lebah, Serangga yang Bermanfaat", s: ["Bunga Mawar di Taman", "Sengatan Lebah", "Kupu-Kupu yang Indah"] } },
+  { ide: "ramainya stasiun menjelang Lebaran", utama: "Stasiun kereta api sangat ramai menjelang Lebaran.", akhir: "Begitulah, stasiun kereta api sangat ramai menjelang Lebaran.",
+    jelas: ["Ribuan orang datang untuk pulang ke kampung halaman.", "Antrean panjang terlihat di depan loket.", "Para petugas bekerja keras mengatur penumpang."], s: ["loket tiket", "petugas stasiun", "kampung halaman"],
+    jd: { b: "Ramainya Stasiun Menjelang Lebaran", s: ["Kereta Api Tercepat", "Petugas Loket", "Liburan ke Pantai"] } },
+  { ide: "manfaat sayuran bagi kesehatan", utama: "Sayuran baik untuk kesehatan tubuh.", akhir: "Jadi, sayuran baik untuk kesehatan tubuh.", g: "sehat",
+    jelas: ["Wortel mengandung zat yang baik untuk mata.", "Bayam membantu tubuh membentuk darah.", "Sayuran juga mengandung serat yang melancarkan pencernaan."], s: ["wortel untuk mata", "darah manusia", "pencernaan"],
+    jd: { b: "Sayuran untuk Kesehatan", s: ["Kebun Wortel Kakek", "Pedagang Sayur Keliling", "Resep Kue Bolu"] } },
+  { ide: "persiapan Regu Melati untuk berkemah", utama: "Regu Melati bersiap untuk berkemah.", akhir: "Begitulah, Regu Melati bersiap untuk berkemah.",
+    jelas: ["Mereka memeriksa tenda dan tali.", "Setiap anggota membawa senter dan perlengkapan makan.", "Kakak pembina mengingatkan agar semua membawa jas hujan."], s: ["tenda dan tali", "senter", "jas hujan"],
+    jd: { b: "Persiapan Berkemah Regu Melati", s: ["Hujan di Perkemahan", "Senter yang Rusak", "Lomba Menyanyi"] } },
 ];
+/* Paragraf lain yang topiknya jauh (untuk kalimat sumbang) */
+const topikLain = p => PARAGRAF.filter(q => q !== p && (!p.g || q.g !== p.g));
+/* Paragraf induktif hanya dari paragraf yang kalimat pertamanya tidak bergantung pada kalimat utama (mis. diawali “Ia …” atau “Bulunya …”) */
+const bisaInduktif = p => !/^(Ia |Mereka |\S+nya\b)|, ia /.test(p.jelas[0]);
+const ambilParagraf = induktif => pilih(induktif ? PARAGRAF.filter(bisaInduktif) : PARAGRAF);
 const PTK_IDE = "Ide pokok adalah gagasan utama yang dibahas seluruh kalimat dalam paragraf, bukan hanya satu kalimat.";
 function soalIdeParagraf(L) {
-  const p = pilih(PARAGRAF), induktif = L >= 5 && ya(0.4), kal = induktif ? [...p.jelas, p.akhir] : [p.utama, ...p.jelas];
+  const induktif = L >= 5 && ya(0.4), p = ambilParagraf(induktif), kal = induktif ? [...p.jelas, p.akhir] : [p.utama, ...p.jelas];
   return pgL("Ide pokok paragraf tersebut adalah …", p.ide, p.s, L, { bacaan: `<p>${kal.join(" ")}</p>`, petunjuk: PTK_IDE, bahas: `Kalimat utamanya: ${kutip(induktif ? p.akhir : p.utama)} Jadi, ide pokoknya ${p.ide}.` });
 }
 function soalIdeInfo(L) {
@@ -253,7 +302,7 @@ function soalIdeBS(L) {
   return bs("Tentukan <b>Benar</b> atau <b>Salah</b> pernyataan tentang ide pokok berikut.", butir, { bacaan: bacaanHtml(e.judul, e.para), petunjuk: PTK_IDE, bahas: e.ide.map((x, i) => `Paragraf ${i + 1}: ${x.b}`).join("<br>") });
 }
 function soalKalimatUtama(L) {
-  const p = pilih(PARAGRAF), induktif = L >= 5 && ya(0.5), kal = induktif ? [...p.jelas, p.akhir] : [p.utama, ...p.jelas], utama = induktif ? p.akhir : p.utama;
+  const induktif = L >= 5 && ya(0.5), p = ambilParagraf(induktif), kal = induktif ? [...p.jelas, p.akhir] : [p.utama, ...p.jelas], utama = induktif ? p.akhir : p.utama;
   if (L <= 5) return pgL("Kalimat utama paragraf tersebut adalah …", utama, p.jelas, L, { bacaan: `<p>${kal.join(" ")}</p>`, petunjuk: "Kalimat utama berisi gagasan yang dijelaskan oleh kalimat-kalimat lainnya.", bahas: `Kalimat utamanya ${kutip(utama)} Kalimat lain menjelaskannya.` });
   const no = kal.indexOf(utama) + 1, letak = L >= 7 && ya();
   return letak ? pgTetap("Kalimat utama paragraf tersebut terletak di …", ["awal paragraf", "akhir paragraf", "tengah paragraf", "awal dan akhir paragraf"], induktif ? "akhir paragraf" : "awal paragraf",
@@ -261,7 +310,7 @@ function soalKalimatUtama(L) {
     : pgTetap("Kalimat utama paragraf tersebut ditandai nomor …", kal.map((_, i) => `(${i + 1})`), `(${no})`, { bacaan: bernomor(kal), bahas: `Kalimat (${no}) ${kutip(utama)} adalah kalimat utama.` });
 }
 function soalSumbang(L) {
-  const [p, q] = ambil(PARAGRAF, 2), kal = [p.utama, ...p.jelas], sisip = pilih(q.jelas), pos = acak(1, kal.length);
+  const p = pilih(PARAGRAF), q = pilih(topikLain(p)), kal = [p.utama, ...p.jelas], sisip = pilih(q.jelas), pos = acak(1, kal.length);
   kal.splice(pos, 0, sisip);
   return pgTetap("Kalimat yang <b>tidak padu</b> (tidak sesuai dengan ide pokok) dalam paragraf tersebut ditandai nomor …", kal.map((_, i) => `(${i + 1})`), `(${pos + 1})`,
     { bacaan: bernomor(kal), petunjuk: "Tentukan dulu ide pokok paragraf. Cari kalimat yang membahas hal lain.", bahas: `Ide pokok paragraf: ${p.ide}. Kalimat (${pos + 1}) ${kutip(sisip)} membahas hal lain.` });
@@ -289,11 +338,108 @@ function soalUrutCerita(L) {
   return pg("Urutan peristiwa yang sesuai dengan cerita tersebut adalah …", u.benar, u.salah,
     { bacaan: bacaanHtml(c.judul, c.para) + `<p class="ket-bacaan">Peristiwa:</p>${daftarBernomor(u.tampil)}`, petunjuk: "Cari setiap peristiwa di dalam cerita, lalu lihat mana yang terjadi lebih dulu.", bahas: daftarBernomor(c.urut) });
 }
+
+/* ---------- Bentuk tambahan untuk level awal ---------- */
+const PTK_UTAMA = "Kalimat utama berisi gagasan yang dijelaskan oleh kalimat-kalimat lainnya.";
+function soalJudulParagraf(L) {
+  const induktif = L >= 5 && ya(0.4), p = ambilParagraf(induktif), kal = induktif ? [...p.jelas, p.akhir] : [p.utama, ...p.jelas];
+  return pgL("Judul yang paling tepat untuk paragraf tersebut adalah …", p.jd.b, p.jd.s, L,
+    { bacaan: `<p>${kal.join(" ")}</p>`, petunjuk: "Judul yang tepat mewakili isi seluruh paragraf, bukan hanya satu kalimat. Lihat kalimat utamanya.", bahas: `Paragraf itu membahas ${p.ide}. Judul yang mewakili: <b>${p.jd.b}</b>.` });
+}
+/* Kalimat sumbang dalam bentuk pilihan kalimat (tanpa nomor) */
+function soalSumbangKalimat(L) {
+  const p = pilih(PARAGRAF), sisip = pilih(pilih(topikLain(p)).jelas), kal = [p.utama, ...p.jelas];
+  kal.splice(acak(1, kal.length), 0, sisip);
+  return pgL("Kalimat yang <b>tidak sesuai</b> dengan ide pokok paragraf tersebut adalah …", sisip, p.jelas, L,
+    { bacaan: `<p>${kal.join(" ")}</p>`, petunjuk: "Tentukan dulu ide pokok paragraf. Cari kalimat yang membahas hal lain.", bahas: `Ide pokok paragraf: ${p.ide}. Kalimat ${kutip(sisip)} membahas hal lain.` });
+}
+function soalLetakUtama(L) {
+  const induktif = ya(), p = ambilParagraf(induktif), kal = induktif ? [...p.jelas, p.akhir] : [p.utama, ...p.jelas], utama = induktif ? p.akhir : p.utama;
+  return pgTetap("Kalimat utama paragraf tersebut terletak di …", ["awal paragraf", "akhir paragraf", "tengah paragraf", "awal dan akhir paragraf"].slice(0, nOpsi(L)), induktif ? "akhir paragraf" : "awal paragraf",
+    { bacaan: `<p>${kal.join(" ")}</p>`, petunjuk: `${PTK_UTAMA} Kalimat yang diawali <i>jadi, begitulah, itulah</i> sering menjadi kalimat utama di akhir paragraf.`,
+      bahas: `Kalimat utamanya ${kutip(utama)} Letaknya di ${induktif ? "akhir paragraf (paragraf induktif)" : "awal paragraf (paragraf deduktif)"}.` });
+}
+/* Cerita pendek berurutan: t = kalimat (urut waktu), ev = peristiwa pada tiap kalimat. {A} dan {B} = nama acak. */
+const URUT_MINI = [
+  { t: ["Pagi itu, {A} bangun pukul lima.", "Setelah itu, ia merapikan tempat tidur.", "Kemudian, {A} mandi dan memakai seragam.", "Terakhir, ia sarapan bersama keluarga."],
+    ev: ["bangun pukul lima", "merapikan tempat tidur", "mandi dan memakai seragam", "sarapan bersama keluarga"] },
+  { t: ["Pertama, {A} dan ayah menggali lubang di halaman.", "Lalu, mereka memasukkan bibit mangga ke dalam lubang.", "Setelah itu, lubang ditutup kembali dengan tanah.", "Terakhir, {A} menyiram bibit itu dengan air."],
+    ev: ["menggali lubang di halaman", "memasukkan bibit mangga ke dalam lubang", "menutup lubang dengan tanah", "menyiram bibit dengan air"] },
+  { t: ["Saat istirahat, {A} pergi ke perpustakaan.", "Di sana, ia memilih sebuah buku cerita tentang hewan.", "Kemudian, {A} membaca buku itu di pojok baca.", "Sebelum bel masuk berbunyi, ia mengembalikan buku ke rak."],
+    ev: ["pergi ke perpustakaan", "memilih buku cerita", "membaca buku di pojok baca", "mengembalikan buku ke rak"] },
+  { t: ["Pagi-pagi, {A} menemani ibu ke pasar.", "Mula-mula, mereka membeli sayur dan tempe.", "Sesudah itu, mereka membeli ikan segar.", "Sebelum pulang, {A} dan ibu membeli kue putu."],
+    ev: ["berangkat ke pasar bersama ibu", "membeli sayur dan tempe", "membeli ikan segar", "membeli kue putu"] },
+  { t: ["Minggu pagi, {A} menyiapkan ember berisi air sabun.", "Lalu, ia menggosok sepedanya dengan spons.", "Setelah itu, sepeda dibilas dengan air bersih.", "Terakhir, {A} mengeringkan sepeda dengan kain."],
+    ev: ["menyiapkan ember berisi air sabun", "menggosok sepeda dengan spons", "membilas sepeda dengan air bersih", "mengeringkan sepeda dengan kain"] },
+  { t: ["Sesampai di sekolah, {A} membuka jendela kelas.", "Kemudian, ia menyapu lantai.", "Setelah lantai bersih, {A} menghapus papan tulis.", "Terakhir, ia membuang sampah ke tempat sampah besar."],
+    ev: ["membuka jendela kelas", "menyapu lantai", "menghapus papan tulis", "membuang sampah"] },
+  { t: ["Pertama, {A} dan kakek meraut bambu menjadi bilah tipis.", "Kemudian, bilah bambu diikat membentuk kerangka.", "Setelah itu, kerangka ditempeli kertas minyak.", "Terakhir, {A} memasang benang pada layang-layang."],
+    ev: ["meraut bambu", "mengikat bilah bambu menjadi kerangka", "menempelkan kertas minyak pada kerangka", "memasang benang"] },
+  { t: ["Sepulang sekolah, {A} membeli buah jeruk.", "Lalu, ia berjalan ke rumah {B} yang sedang sakit.", "Di sana, {A} memberikan jeruk itu kepada {B}.", "Sebelum pulang, ia mendoakan {B} agar cepat sembuh."],
+    ev: ["membeli buah jeruk", "berjalan ke rumah {B}", "memberikan jeruk kepada {B}", "mendoakan {B} agar cepat sembuh"] },
+  { t: ["Mula-mula, {A} mengupas dan memotong bawang.", "Lalu, ibu menumis bawang itu sampai harum.", "Setelah itu, nasi dan kecap dimasukkan, lalu diaduk rata.", "Terakhir, {A} menyajikan nasi goreng di piring."],
+    ev: ["memotong bawang", "menumis bawang", "mengaduk nasi dan kecap", "menyajikan nasi goreng di piring"] },
+  { t: ["Senin pagi, {A} dan teman-temannya berbaris di lapangan.", "Kemudian, bendera merah putih dikibarkan.", "Setelah itu, mereka mendengarkan amanat kepala sekolah.", "Upacara ditutup dengan doa bersama."],
+    ev: ["berbaris di lapangan", "mengibarkan bendera merah putih", "mendengarkan amanat kepala sekolah", "berdoa bersama"] },
+  { t: ["Siang itu, {A} menjemur pakaian di halaman.", "Tiba-tiba, langit menjadi gelap.", "{A} segera mengangkat semua jemuran ke dalam rumah.", "Tak lama setelah jemuran masuk, hujan turun dengan deras."],
+    ev: ["menjemur pakaian", "langit menjadi gelap", "mengangkat jemuran", "hujan turun dengan deras"] },
+  { t: ["Pukul tujuh pagi, rombongan kelas {A} berangkat dengan bus.", "Setiba di kebun binatang, mereka melihat gajah dan jerapah.", "Siang harinya, mereka makan bekal bersama di taman.", "Sore hari, rombongan pulang ke sekolah."],
+    ev: ["berangkat dengan bus", "melihat gajah dan jerapah", "makan bekal bersama", "pulang ke sekolah"] },
+  { t: ["Malam itu, {A} mengerjakan PR Matematika.", "Setelah PR selesai, ia memasukkan buku ke dalam tas.", "Kemudian, {A} menggosok gigi.", "Akhirnya, ia tidur setelah berdoa."],
+    ev: ["mengerjakan PR Matematika", "memasukkan buku ke dalam tas", "menggosok gigi", "tidur setelah berdoa"] },
+  { t: ["Kucing {A} sudah dua hari tidak pulang.", "{A} lalu mencarinya ke rumah tetangga.", "Kemudian, ia mendengar suara mengeong dari gudang.", "Ternyata, kucingnya terkunci di dalam gudang itu."],
+    ev: ["kucing tidak pulang selama dua hari", "mencari kucing ke rumah tetangga", "mendengar suara mengeong dari gudang", "menemukan kucing di dalam gudang"] },
+];
+function urutMini() {
+  const u = pilih(URUT_MINI), [A, B] = namaBeda(2), f = s => s.replace(/\{A\}/g, A).replace(/\{B\}/g, B);
+  return { t: u.t.map(f), ev: u.ev.map(f) };
+}
+function soalUrutMini(L) {
+  const { t, ev } = urutMini(), n = ev.length, jenis = pilih(["awal", "akhir", "sesudah", "sebelum"]);
+  let teks, i;
+  if (jenis === "awal") { i = 0; teks = "Peristiwa yang terjadi <b>pertama kali</b> dalam cerita tersebut adalah …"; }
+  else if (jenis === "akhir") { i = n - 1; teks = "Peristiwa yang terjadi <b>paling akhir</b> dalam cerita tersebut adalah …"; }
+  else if (jenis === "sesudah") { const j = acak(0, n - 2); i = j + 1; teks = `Peristiwa yang terjadi <b>sesudah</b> “${ev[j]}” adalah …`; }
+  else { const j = acak(1, n - 1); i = j - 1; teks = `Peristiwa yang terjadi <b>sebelum</b> “${ev[j]}” adalah …`; }
+  return pgL(teks, ev[i], ev.filter((_, k) => k !== i), L,
+    { bacaan: `<p>${t.join(" ")}</p>`, petunjuk: "Perhatikan kata penanda urutan: <i>pertama, mula-mula, lalu, kemudian, setelah itu, akhirnya</i>.", bahas: `Urutan peristiwa:${daftarBernomor(ev)}` });
+}
+/* Kalimat acak disusun menjadi paragraf padu */
+function soalSusunKalimat(L) {
+  const { t } = urutMini(), u = urutanAcak(t);
+  return pg("Susunan kalimat yang tepat agar menjadi paragraf yang padu adalah …", u.benar, u.salah,
+    { banyak: nOpsi(L), bacaan: daftarBernomor(u.tampil), petunjuk: "Cari kalimat pembuka (biasanya menyebut nama tokoh dan waktu). Lalu ikuti kata penanda urutan: <i>lalu, kemudian, setelah itu, akhirnya</i>.", bahas: `<p>${t.join(" ")}</p>` });
+}
+/* Langkah pertama/terakhir dari teks prosedur yang diacak */
+function soalLangkahUjung(L) {
+  const p = pilih(PROSEDUR), awal = ya(), i = awal ? 0 : p.langkah.length - 1;
+  return pgL(`Langkah <b>${awal ? "pertama" : "terakhir"}</b> dalam “${p.judul.toLowerCase()}” adalah …`, p.langkah[i], p.langkah.filter((_, j) => j !== i), L,
+    { bacaan: `<h4>${p.judul}</h4>${daftarBernomor(kocok(p.langkah))}`, petunjuk: "Bayangkan kamu sedang melakukannya sendiri. Apa yang harus dikerjakan paling dulu? Apa yang paling akhir?", bahas: daftarBernomor(p.langkah) });
+}
+/* Benar–salah tentang satu paragraf bernomor: kalimat utama, letaknya, ide pokok, judul, kalimat penjelas */
+function soalParagrafBS(L) {
+  const induktif = ya(), p = ambilParagraf(induktif), kal = induktif ? [...p.jelas, p.akhir] : [p.utama, ...p.jelas], no = induktif ? kal.length : 1;
+  const nJelas = pilih(kal.map((_, i) => i + 1).filter(i => i !== no)), nLain = pilih(kal.map((_, i) => i + 1).filter(i => i !== no));
+  const cetak = [
+    v => ({ t: `Kalimat utama paragraf tersebut adalah kalimat (${v ? no : nLain}).`, b: v }),
+    v => ({ t: `Kalimat utama terletak di ${(induktif === v) ? "akhir" : "awal"} paragraf.`, b: v }),
+    v => ({ t: `Ide pokok paragraf tersebut adalah ${v ? p.ide : pilih(p.s)}.`, b: v }),
+    v => ({ t: `Judul yang tepat untuk paragraf tersebut adalah “${v ? p.jd.b : pilih(p.jd.s)}”.`, b: v }),
+    v => ({ t: `Kalimat (${v ? nJelas : no}) merupakan kalimat penjelas.`, b: v }),
+  ];
+  const pakai = ambil(cetak, L >= 8 ? 4 : 3), nilai = campurBS(pakai.length), butir = pakai.map((c, i) => c(nilai[i]));
+  const o = { bacaan: bernomor(kal), petunjuk: PTK_UTAMA,
+    bahas: `Kalimat utama: (${no}) ${kutip(kal[no - 1])}, di ${induktif ? "akhir" : "awal"} paragraf.<br>Ide pokok: ${p.ide}.<br>Judul yang tepat: ${p.jd.b}.` };
+  return L >= 7 && ya(0.4) ? pgk("Pilih <b>semua</b> pernyataan yang sesuai dengan paragraf tersebut.", butir, o) : bs("Tentukan <b>Benar</b> atau <b>Salah</b> pernyataan tentang paragraf tersebut.", butir, o);
+}
 daftarMisi("pah", "bi5", "Ide pokok & urutan", "🧩", {
-  1: [() => soalIdeParagraf(1)], 2: [() => soalIdeParagraf(2), () => soalIdeInfo(2)],
-  3: [() => soalIdeParagraf(3), () => soalIdeInfo(3), () => soalKalimatUtama(3)], 4: [() => soalIdeInfo(4), () => soalKalimatUtama(4), () => soalLangkahBerikut(4)],
-  5: [() => soalIdeParagraf(5), () => soalKalimatUtama(5), () => soalUrutProsedur(5), () => soalLangkahBerikut(5)],
-  6: [() => soalKalimatUtama(6), () => soalUrutProsedur(6), () => soalIdeInfo(6)], 7: [() => soalKalimatUtama(7), () => soalIdeInfo(7), () => soalUrutCerita(7), () => soalUrutProsedur(7)],
+  1: [() => soalIdeParagraf(1), () => soalKalimatUtama(1), () => soalJudulParagraf(1), () => soalUrutMini(1), () => soalUrutMini(1)],
+  2: [() => soalIdeParagraf(2), () => soalIdeInfo(2), () => soalKalimatUtama(2), () => soalJudulParagraf(2), () => soalUrutMini(2), () => soalSumbangKalimat(2), () => soalSusunKalimat(2)],
+  3: [() => soalIdeParagraf(3), () => soalIdeInfo(3), () => soalKalimatUtama(3), () => soalJudulParagraf(3), () => soalUrutMini(3), () => soalSumbangKalimat(3), () => soalSusunKalimat(3), () => soalLetakUtama(3), () => soalLangkahUjung(3)],
+  4: [() => soalIdeInfo(4), () => soalKalimatUtama(4), () => soalLangkahBerikut(4), () => soalJudulParagraf(4), () => soalSumbangKalimat(4), () => soalLetakUtama(4)],
+  5: [() => soalIdeParagraf(5), () => soalKalimatUtama(5), () => soalUrutProsedur(5), () => soalLangkahBerikut(5), () => soalJudulParagraf(5), () => soalSusunKalimat(5)],
+  6: [() => soalKalimatUtama(6), () => soalUrutProsedur(6), () => soalIdeInfo(6), () => soalParagrafBS(6), () => soalSumbangKalimat(6), () => soalJudulParagraf(6)],
+  7: [() => soalKalimatUtama(7), () => soalIdeInfo(7), () => soalUrutCerita(7), () => soalUrutProsedur(7), () => soalParagrafBS(7), () => soalSumbang(7)],
   8: [() => soalSumbang(8), () => soalIdeInfo(8), () => soalUrutCerita(8), () => soalIdeBS(8)], 9: [() => soalSumbang(9), () => soalIdeBS(9), () => soalUrutCerita(9), () => soalIdeInfo(9)],
   10: [() => soalSumbang(10), () => soalIdeBS(10), () => soalIdeInfo(10), () => soalUrutCerita(10)],
 });

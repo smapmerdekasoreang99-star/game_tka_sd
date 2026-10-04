@@ -44,6 +44,18 @@ daftarMisi("bil", "b1", "Nilai tempat & membaca bilangan", "🔟", {
     () => { const n = bilAcak(4, true), a = angkaDari(n), i = acak(1, 2), parts = a.map((d, k) => d * 10 ** k).reverse(), j = 3 - i;
       const tampil = parts.map((x, k) => (k === j ? "□" : fmt(x))).join(" + ");
       return isian(`${fmt(n)} = ${tampil}<br>Nilai □ adalah …`, parts[j], { petunjuk: "Uraikan bilangan menurut nilai tempat.", bahas: `${fmt(n)} = ${parts.map(fmt).join(" + ")}.` }); },
+    () => { const x = nama(), a = acak(1, 9), b = acak(0, 9), c = acak(0, 9), t = a * 1000 + b * 100 + c * 10;
+      return isian(`${x} memiliki ${a} lembar uang Rp1.000, ${b} keping uang Rp100, dan ${c} keping uang Rp10. Jumlah uang ${x} adalah Rp …`, t,
+        { petunjuk: "Rp1.000 = ribuan, Rp100 = ratusan, Rp10 = puluhan.", bahas: `${a} × 1.000 + ${b} × 100 + ${c} × 10 = ${fmt(a * 1000)} + ${b * 100} + ${c * 10} = ${fmt(t)}.` }); },
+    () => { const a = acak(1, 9), p = acak(1, 9), s = acak(0, 9), n = a * 1000 + p * 10 + s;
+      return isian(`Bilangan yang terdiri atas <b>${a} ribuan, ${p} puluhan, dan ${s} satuan</b> (tanpa ratusan) adalah …`, n,
+        { petunjuk: "Tidak ada ratusan, jadi tempat ratusan diisi 0.", bahas: `${fmt(a * 1000)} + ${p * 10} + ${s} = ${fmt(n)}. Angka ratusannya 0.` }); },
+    () => { const n = bilAcak(4), a = angkaDari(n), i = acak(0, 3), nm = ["satuan", "puluhan", "ratusan", "ribuan"];
+      const tampil = [3, 2, 1, 0].map(k => (k === i ? `□ ${nm[k]}` : `${a[k]} ${nm[k]}`)).join(" + ");
+      return isian(`${fmt(n)} = ${tampil}<br>Nilai □ adalah …`, a[i], { petunjuk: "Lihat angka di tempat yang ditanyakan.", bahas: `${fmt(n)} = ${[3, 2, 1, 0].map(k => `${a[k]} ${nm[k]}`).join(" + ")}. Jadi □ = ${a[i]}.` }); },
+    () => { const n = acak(1100, 8899), k = pilih([10, 100, 1000]), lebih = ya(), v = lebih ? n + k : n - k;
+      return isian(`Bilangan yang <b>${fmt(k)} ${lebih ? "lebih besar" : "lebih kecil"}</b> daripada ${fmt(n)} adalah …`, v,
+        { petunjuk: `${lebih ? "Tambah" : "Kurangi"} angka ${NAMA_BULAT[k]}nya dengan 1.`, bahas: `${fmt(n)} ${lebih ? "+" : "−"} ${fmt(k)} = ${fmt(v)}.` }); },
   ],
   3: [
     () => { const n = bilAcak(5), a = angkaDari(n).map((d, k) => d * 10 ** k).reverse().filter(x => x);
@@ -116,6 +128,33 @@ daftarMisi("bil", "b1", "Nilai tempat & membaca bilangan", "🔟", {
       const u = kartu.slice().sort((x, y) => x - y); const k = u.findIndex(x => x > 0); [u[0], u[k]] = [u[k], u[0]]; const kc = +u.join("");
       return isian(`Dari kartu <b>${kocok(kartu).join(", ")}</b> (masing-masing dipakai sekali) dibuat bilangan 5 angka terbesar dan terkecil. Selisih kedua bilangan itu adalah …`, b - kc,
         { petunjuk: "Cari dulu bilangan terbesar dan terkecil.", bahas: `Terbesar ${fmt(b)}, terkecil ${fmt(kc)}, selisih ${fmt(b - kc)}.` }); },
+    () => { const p = acak(1, 4), r = acak(p + 1, 9), ra = pilih([0, r - p]), pu = p + r <= 9 ? p + r : r - p, genap = ya(), s = genap ? 8 : 1;
+      const n = p * 10000 + r * 1000 + ra * 100 + pu * 10 + s;
+      const petun = [`Angka puluh ribuanku ${p}.`, `Angka ribuanku ${r - p} lebih besar daripada angka puluh ribuanku.`,
+        ra === 0 ? "Angka ratusanku nol." : "Angka ratusanku sama dengan selisih angka ribuan dan angka puluh ribuanku.",
+        p + r <= 9 ? "Angka puluhanku adalah jumlah angka puluh ribuan dan angka ribuanku." : "Angka puluhanku adalah selisih angka ribuan dan angka puluh ribuanku.",
+        genap ? "Angka satuanku adalah angka genap terbesar." : "Angka satuanku adalah angka ganjil terkecil."];
+      return isian(`Tebak aku! Aku bilangan 5 angka.<br>${petun.map((t, i) => `${i + 1}) ${t}`).join("<br>")}<br>Aku adalah bilangan …`, n,
+        { petunjuk: "Isi tempat satu per satu dari kiri: puluh ribuan, ribuan, ratusan, puluhan, satuan.", bahas: `Puluh ribuan ${p}, ribuan ${r}, ratusan ${ra}, puluhan ${pu}, satuan ${s}. Bilangannya ${fmt(n)}.` }); },
+    () => { const n = bilAcak(7, true), a = angkaDari(n), i = acak(2, 6), d = a[i]; let e; do e = acak(i === 6 ? 1 : 0, 9); while (e === d);
+      const m = n + (e - d) * 10 ** i, sel = Math.abs(e - d) * 10 ** i, salahKetik = ya();
+      const teks = salahKetik
+        ? `Petugas mencatat jumlah penduduk sebuah kota <b>${fmt(n)} jiwa</b>. Ternyata ada salah ketik: angka <b>${d}</b> di tempat ${TEMPAT[i]} seharusnya angka <b>${e}</b>. Selisih data yang salah dengan data yang benar adalah … jiwa.`
+        : `Pada bilangan <b>${fmt(n)}</b>, angka <b>${d}</b> di tempat ${TEMPAT[i]} diganti dengan angka <b>${e}</b>. Bilangan itu menjadi ${e > d ? "lebih besar" : "lebih kecil"} sebanyak …`;
+      return isian(teks, sel, { satuan: salahKetik ? "jiwa" : undefined, petunjuk: "Yang berubah hanya nilai angka di tempat itu saja.",
+        bahas: `Nilai semula ${fmt(d * 10 ** i)}, nilai baru ${fmt(e * 10 ** i)}. Selisihnya ${fmt(sel)}. Bilangan yang benar/baru: ${fmt(m)}.` }); },
+    () => { const d = acak(1, 9), i = acak(4, 6), j = acak(0, 2), lain = ambil([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(x => x !== d), 5), a = [];
+      for (let k = 0; k < 7; k++) a.push(k === i || k === j ? d : lain.pop());
+      if (a[6] === 0) { const k = [0, 1, 2, 3, 4, 5].find(t => a[t] !== 0 && a[t] !== d); [a[6], a[k]] = [a[k], a[6]]; }
+      const n = +a.slice().reverse().join(""), kali = 10 ** (i - j);
+      return isian(`Pada bilangan <b>${fmt(n)}</b> terdapat dua angka <b>${d}</b>. Nilai angka ${d} yang paling kiri adalah … kali nilai angka ${d} yang paling kanan.`, kali,
+        { petunjuk: "Tulis nilai kedua angka itu, lalu bagi yang besar dengan yang kecil.", bahas: `Nilai angka ${d} paling kiri ${fmt(d * 10 ** i)} (${TEMPAT[i]}), paling kanan ${fmt(d * 10 ** j)} (${TEMPAT[j]}). ${fmt(d * 10 ** i)} : ${fmt(d * 10 ** j)} = ${fmt(kali)}.` }); },
+    () => { const d = acak(1, 9), i = acak(3, 5), lain = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(x => x !== d);
+      const buat = k => { const a = ambil(lain, 7); a[k] = d; if (a[6] === 0) a[6] = pilih(lain.filter(x => x && !a.includes(x))); return +a.slice().reverse().join(""); };
+      const posisi = kocok([i, i - 1, i + 1, pilih([i, i - 2]), pilih([i, i - 2, i + 1])]), daftar = new Map();
+      for (const k of posisi) { let n; do n = buat(k); while (daftar.has(n)); daftar.set(n, k === i); }
+      return pgk(`Pilih <b>semua</b> bilangan yang angka <b>${d}</b>-nya bernilai <b>${fmt(d * 10 ** i)}</b>.`, [...daftar].map(([n, b]) => ({ t: fmt(n), b })),
+        { petunjuk: `${fmt(d * 10 ** i)} berarti angka ${d} harus berada di tempat ${TEMPAT[i]}.`, bahas: `Angka ${d} bernilai ${fmt(d * 10 ** i)} jika berada di tempat ${TEMPAT[i]} (urutan ke-${i + 1} dari kanan).` }); },
   ],
   10: [
     () => { const kartu = ambil([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 6), syarat = pilih(["genap", "ganjil", "kelipatan 5"]), besar = ya();
@@ -129,6 +168,23 @@ daftarMisi("bil", "b1", "Nilai tempat & membaca bilangan", "🔟", {
       for (const p of permutasi(kartu)) { const n = +p.join(""); if (n % x === 0) set.add(n); }
       return isian(`Dari kartu <b>${kartu.join(", ")}</b> disusun bilangan 4 angka (setiap kartu dipakai sekali). Ada berapa bilangan yang <b>habis dibagi ${x}</b>?`, set.size,
         { petunjuk: x === 3 || x === 9 ? `Bilangan habis dibagi ${x} jika jumlah angkanya habis dibagi ${x}.` : `Perhatikan angka-angka terakhirnya.`, bahas: `Ada ${set.size} bilangan.` }); },
+    () => { const nol = ya(), b = acak(4, 5), kartu = ambil([1, 2, 3, 4, 5, 6, 7, 8, 9], nol ? b - 1 : b).concat(nol ? [0] : []), set = new Set();
+      for (const p of permutasi(kartu)) if (p[0] !== 0) set.add(+p.slice(0, 3).join(""));
+      const r = nol ? b - 1 : b, rumus = `${r} × ${b - 1} × ${b - 2}`;
+      return isian(`Dari ${b} kartu angka <b>${kocok(kartu).join(", ")}</b> akan dibuat bilangan <b>3 angka</b>. Setiap kartu paling banyak dipakai satu kali${nol ? " dan angka paling kiri tidak boleh 0" : ""}. Banyak bilangan berbeda yang dapat dibuat adalah …`, set.size,
+        { petunjuk: `Hitung pilihan untuk angka ratusan${nol ? " (bukan 0)" : ""}, lalu puluhan dari kartu sisa, lalu satuan.`, bahas: `Ratusan ${r} pilihan, puluhan ${b - 1} pilihan, satuan ${b - 2} pilihan: ${rumus} = ${set.size} bilangan.` }); },
+    () => { const kartu = ambil([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 4), N = acak(3, 8) * 1000 + acak(0, 9) * 100 + acak(0, 99); let best = null;
+      for (const p of permutasi(kartu)) { if (p[0] === 0) continue; const n = +p.join(""); if (best === null || Math.abs(n - N) < Math.abs(best - N) || (Math.abs(n - N) === Math.abs(best - N) && n < best)) best = n; }
+      if (Math.abs(best - N) === 0) return pilih(this_b1_10)();
+      const kembar = [...permutasi(kartu)].filter(p => p[0] !== 0).map(p => +p.join("")).filter(n => n !== best && Math.abs(n - N) === Math.abs(best - N)).length;
+      if (kembar) return pilih(this_b1_10)();
+      return isian(`Kartu angka: <b>${kartu.join(", ")}</b>. Setiap kartu dipakai tepat satu kali untuk membuat bilangan 4 angka. Bilangan yang <b>paling dekat</b> dengan ${fmt(N)} adalah …`, best,
+        { petunjuk: "Pilih angka ribuan yang paling dekat dulu, lalu atur angka sisanya.", bahas: `Bilangan ${fmt(best)} berselisih ${fmt(Math.abs(best - N))} dari ${fmt(N)}, paling kecil di antara semua susunan.` }); },
+    () => { const d = acak(2, 9), pos = ambil([0, 1, 2, 3, 4, 5], 3).sort((x, y) => x - y), lain = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(x => x !== d), a = [];
+      for (let k = 0; k < 7; k++) a.push(pos.includes(k) ? d : pilih(k === 6 ? lain.filter(x => x) : lain));
+      const n = +a.slice().reverse().join(""), j = pos.reduce((s, k) => s + d * 10 ** k, 0);
+      return isian(`Pada bilangan <b>${fmt(n)}</b> terdapat tiga angka <b>${d}</b>. Jumlah nilai ketiga angka ${d} itu adalah …`, j,
+        { petunjuk: "Tentukan nilai setiap angka sesuai tempatnya, lalu jumlahkan.", bahas: `${pos.slice().reverse().map(k => fmt(d * 10 ** k)).join(" + ")} = ${fmt(j)}.` }); },
   ],
 });
 const this_b1_10 = [() => isian("Nilai angka 7 pada bilangan 4.738.215 adalah …", 700000, { bahas: "7 di tempat ratus ribuan → 700.000." })];
@@ -144,6 +200,19 @@ daftarMisi("bil", "b2", "Membandingkan, mengurutkan, membulatkan", "⚖️", {
     keTKA(() => { const x = [bilAcak(3), bilAcak(3), bilAcak(3)]; const b = ya(); const j = b ? Math.max(...x) : Math.min(...x);
       return pg(`Bilangan <b>${b ? "terbesar" : "terkecil"}</b> di antara ${x.map(fmt).join(", ")} adalah …`, fmt(j), x.filter(v => v !== j).map(fmt).concat([fmt(j + 1)]),
         { bahas: `Bandingkan ratusannya dulu. Jawabannya ${fmt(j)}.` }); }),
+    () => { const n = acak(101, 998), sesudah = ya();
+      return isian(`Bilangan yang tepat ${sesudah ? "<b>sesudah</b>" : "<b>sebelum</b>"} ${fmt(n)} adalah …`, sesudah ? n + 1 : n - 1,
+        { petunjuk: sesudah ? "Bilangan sesudah = tambah 1." : "Bilangan sebelum = kurangi 1.", bahas: `${fmt(n)} ${sesudah ? "+" : "−"} 1 = ${fmt(sesudah ? n + 1 : n - 1)}.` }); },
+    () => { const [x, y] = namaBeda(2), benda = pilih(["kelereng", "perangko", "stiker", "kartu bergambar", "manik-manik"]), a = bilAcak(3); let b; do b = Math.floor(a / 100) * 100 + acak(0, 99); while (b === a);
+      const banyak = ya(), j = banyak ? Math.max(a, b) : Math.min(a, b);
+      return isian(`${x} mengumpulkan ${fmt(a)} ${benda}, sedangkan ${y} mengumpulkan ${fmt(b)} ${benda}. Banyak ${benda} milik anak yang mengumpulkan paling <b>${banyak ? "banyak" : "sedikit"}</b> adalah …`, j,
+        { satuan: benda, petunjuk: "Angka ratusannya sama, bandingkan puluhannya.", bahas: `${fmt(Math.max(a, b))} > ${fmt(Math.min(a, b))}. Jawabannya ${fmt(j)} ${benda}.` }); },
+    () => { const x = new Set(); while (x.size < 3) x.add(bilAcak(3)); const a = [...x], u = a.slice().sort((p, q) => p - q);
+      return isian(`Bilangan ${a.map(fmt).join(", ")} diurutkan dari yang terkecil. Bilangan yang berada di <b>tengah</b> adalah …`, u[1],
+        { petunjuk: "Urutkan dulu ketiga bilangan itu.", bahas: `Urutannya ${u.map(fmt).join(", ")}. Yang di tengah ${fmt(u[1])}.` }); },
+    () => { const d = ambil([1, 2, 3, 4, 5, 6, 7, 8, 9], 3), b = ya(), n = +d.slice().sort((x, y) => (b ? y - x : x - y)).join("");
+      return isian(`Dari kartu angka ${d.join(", ")} (masing-masing dipakai sekali) dibuat bilangan 3 angka. Bilangan <b>${b ? "terbesar" : "terkecil"}</b> yang dapat dibuat adalah …`, n,
+        { petunjuk: b ? "Taruh angka terbesar paling kiri." : "Taruh angka terkecil paling kiri.", bahas: `Jawabannya ${fmt(n)}.` }); },
   ],
   2: [
     () => { const d = ambil([1, 2, 3, 4, 5, 6, 7, 8, 9], 4); const x = new Set(); while (x.size < 4) x.add(+kocok(d).join("")); const arr = [...x], b = ya(), j = b ? Math.max(...arr) : Math.min(...arr);
@@ -156,10 +225,32 @@ daftarMisi("bil", "b2", "Membandingkan, mengurutkan, membulatkan", "⚖️", {
   3: [
     () => { const n = acak(10, 999) * 10 + pilih([1, 2, 3, 4, 5, 6, 7, 8, 9]);
       return isian(`Hasil pembulatan <b>${fmt(n)}</b> ke <b>puluhan terdekat</b> adalah …`, pembulatan(n, 10), { petunjuk: "Lihat angka satuannya: 5 ke atas dibulatkan ke atas.", bahas: `Angka satuan ${n % 10} → ${n % 10 >= 5 ? "naik" : "tetap"}. Hasilnya ${fmt(pembulatan(n, 10))}.` }); },
+    () => { let n; do n = acak(110, 989); while (n % 100 === 0);
+      return isian(`Hasil pembulatan <b>${fmt(n)}</b> ke <b>ratusan terdekat</b> adalah …`, pembulatan(n, 100),
+        { petunjuk: "Lihat angka puluhannya: 5 ke atas dibulatkan ke atas.", bahas: `Angka puluhan ${Math.floor(n / 10) % 10} → ${Math.floor(n / 10) % 10 >= 5 ? "naik" : "tetap"}. ${fmt(n)} ≈ ${fmt(pembulatan(n, 100))}.` }); },
+    () => { const [hal, sat] = pilih([["Tinggi pohon mangga di halaman sekolah", "cm"], ["Berat karung beras di toko", "kg"], ["Jarak rumah Dina ke sekolah", "m"], ["Banyak siswa di SD Harapan", "siswa"], ["Banyak buku di rak kelas", "buku"]]);
+      let n; do n = acak(41, 489); while (n % 10 === 0);
+      return isian(`${hal} adalah ${fmt(n)} ${sat}. Jika dibulatkan ke <b>puluhan terdekat</b>, hasilnya kira-kira …`, pembulatan(n, 10),
+        { satuan: sat, petunjuk: "Lihat angka satuannya.", bahas: `Angka satuan ${n % 10} → ${n % 10 >= 5 ? "naik" : "tetap"}. ${fmt(n)} ≈ ${fmt(pembulatan(n, 10))} ${sat}.` }); },
+    () => { let a, b; do { a = acak(12, 89); b = acak(12, 89); } while (a % 10 === 0 || b % 10 === 0); const A = pembulatan(a, 10), B = pembulatan(b, 10);
+      return isian(`Taksiran hasil <b>${a} + ${b}</b> dengan membulatkan setiap bilangan ke puluhan terdekat adalah …`, A + B,
+        { petunjuk: "Bulatkan dulu setiap bilangan, baru jumlahkan.", bahas: `${a} ≈ ${A} dan ${b} ≈ ${B}. Taksirannya ${A} + ${B} = ${A + B}.` }); },
+    () => { const X = acak(2, 49) * 10, kecil = ya();
+      return isian(`Bilangan cacah <b>${kecil ? "terkecil" : "terbesar"}</b> yang jika dibulatkan ke puluhan terdekat menjadi <b>${X}</b> adalah …`, kecil ? X - 5 : X + 4,
+        { petunjuk: "Satuan 5 ke atas dibulatkan naik, satuan 4 ke bawah dibulatkan turun.", bahas: `Bilangan ${X - 5} sampai ${X + 4} dibulatkan menjadi ${X}. Jawabannya ${kecil ? X - 5 : X + 4}.` }); },
   ],
   4: [
     () => { const k = pilih([100, 1000]), n = acak(1000, 99999); if (n % k === 0) return isian(`Pembulatan ${fmt(n + 37)} ke ratusan terdekat adalah …`, pembulatan(n + 37, 100), { bahas: "Lihat angka puluhannya." });
       return isian(`Hasil pembulatan <b>${fmt(n)}</b> ke <b>${NAMA_BULAT[k]} terdekat</b> adalah …`, pembulatan(n, k), { petunjuk: `Lihat angka di kanan tempat ${NAMA_BULAT[k]}.`, bahas: `${fmt(n)} ≈ ${fmt(pembulatan(n, k))}.` }); },
+    () => { const b = pilih(["sepatu", "tas sekolah", "jaket", "boneka", "mainan mobil", "kotak bekal"]); let h; do h = acak(15, 95) * 1000 + acak(1, 9) * 100 + pilih([0, 50]); while (h % 1000 === 0);
+      return isian(`Harga sebuah ${b} adalah ${rp(h)}. Jika dibulatkan ke <b>ribuan terdekat</b>, harganya kira-kira Rp …`, pembulatan(h, 1000),
+        { petunjuk: "Lihat angka ratusannya: 5 ke atas dibulatkan naik.", bahas: `Angka ratusan ${Math.floor((h % 1000) / 100)} → ${h % 1000 >= 500 ? "naik" : "tetap"}. ${rp(h)} ≈ ${rp(pembulatan(h, 1000))}.` }); },
+    () => { let a, b; do { a = acak(110, 890); b = acak(110, 890); } while (a % 100 === 0 || b % 100 === 0 || a % 100 === 50 || b % 100 === 50); const A = pembulatan(a, 100), B = pembulatan(b, 100);
+      return isian(`Taksiran hasil <b>${a} + ${b}</b> dengan membulatkan setiap bilangan ke ratusan terdekat adalah …`, A + B,
+        { petunjuk: "Bulatkan dulu setiap bilangan ke ratusan, baru jumlahkan.", bahas: `${a} ≈ ${A} dan ${b} ≈ ${B}. Taksirannya ${A} + ${B} = ${fmt(A + B)}.` }); },
+    () => { const x = new Set(); while (x.size < 3) x.add(bilAcak(4)); const a = [...x], s = Math.max(...a) - Math.min(...a);
+      return isian(`Selisih bilangan terbesar dan terkecil di antara ${a.map(fmt).join(", ")} adalah …`, s,
+        { petunjuk: "Temukan yang terbesar dan terkecil dulu, lalu kurangkan.", bahas: `Terbesar ${fmt(Math.max(...a))}, terkecil ${fmt(Math.min(...a))}. ${fmt(Math.max(...a))} − ${fmt(Math.min(...a))} = ${fmt(s)}.` }); },
   ],
   5: [
     () => { const d = acak(1, 8), x = new Set(); while (x.size < 4) x.add(d * 10000 + acak(0, 9999)); const arr = [...x], urut = arr.slice().sort((a, b) => a - b), k = acak(2, 3), besar = ya();
@@ -167,6 +258,19 @@ daftarMisi("bil", "b2", "Membandingkan, mengurutkan, membulatkan", "⚖️", {
     keTKA(() => { const d = acak(1, 8), x = new Set(); while (x.size < 4) x.add(d * 10000 + acak(0, 9999)); const arr = [...x], benar = arr.slice().sort((a, b) => a - b);
       const salah = []; while (salah.length < 3) { const p = kocok(arr); if (p.join() !== benar.join() && !salah.some(s => s.join() === p.join())) salah.push(p); }
       return pg(`Urutan bilangan dari yang <b>terkecil</b> adalah …`, benar.map(fmt).join("; "), salah.map(s => s.map(fmt).join("; ")), { petunjuk: "Bandingkan ribuan, lalu ratusan, dan seterusnya.", bahas: `Urutannya ${benar.map(fmt).join(" < ")}.` }); }),
+    () => { const nm = ambil(["Gunung Sinar", "Gunung Pelangi", "Gunung Awan", "Gunung Bintang", "Gunung Embun", "Gunung Fajar"], 4), x = new Set(); while (x.size < 4) x.add(acak(2500, 3900));
+      const t = [...x], u = t.slice().sort((p, q) => q - p), k = acak(2, 3);
+      return isian(`Tinggi empat gunung: ${nm.map((g, i) => `${g} ${fmt(t[i])} m`).join(", ")}. Tinggi gunung yang berada di urutan <b>ke-${k}</b> dari yang tertinggi adalah …`, u[k - 1],
+        { satuan: "m", petunjuk: "Urutkan dari yang tertinggi.", bahas: `Urutannya ${u.map(fmt).join(" > ")}. Urutan ke-${k}: ${fmt(u[k - 1])} m.` }); },
+    () => { let a, b; do { a = acak(3100, 9800); b = acak(1100, a - 600); } while (a % 100 === 50 || b % 100 === 50); const A = pembulatan(a, 100), B = pembulatan(b, 100);
+      return isian(`Taksiran hasil <b>${fmt(a)} − ${fmt(b)}</b> dengan membulatkan setiap bilangan ke ratusan terdekat adalah …`, A - B,
+        { petunjuk: "Bulatkan dulu setiap bilangan, baru kurangkan.", bahas: `${fmt(a)} ≈ ${fmt(A)} dan ${fmt(b)} ≈ ${fmt(B)}. ${fmt(A)} − ${fmt(B)} = ${fmt(A - B)}.` }); },
+    () => { const k = pilih([10000, 100000]); let n; do n = acak(100000, 999999); while (n % k === 0);
+      return isian(`Hasil pembulatan <b>${fmt(n)}</b> ke <b>${NAMA_BULAT[k]} terdekat</b> adalah …`, pembulatan(n, k),
+        { petunjuk: `Lihat angka tepat di sebelah kanan tempat ${NAMA_BULAT[k]}.`, bahas: `Angka di kanannya ${Math.floor((n % k) / (k / 10))} → ${Math.floor((n % k) / (k / 10)) >= 5 ? "naik" : "tetap"}. ${fmt(n)} ≈ ${fmt(pembulatan(n, k))}.` }); },
+    () => { const d = ambil([1, 2, 3, 4, 5, 6, 7, 8, 9], 4).concat([0]), u = d.slice().sort((x, y) => x - y); [u[0], u[1]] = [u[1], u[0]]; const n = +u.join("");
+      return isian(`Dari kartu angka ${kocok(d).join(", ")} (masing-masing dipakai sekali) dibuat bilangan 5 angka. Bilangan <b>terkecil</b> yang dapat dibuat adalah …`, n,
+        { petunjuk: "Angka paling kiri tidak boleh 0. Letakkan 0 di tempat kedua.", bahas: `Angka terkecil selain 0 di depan, lalu 0, lalu sisanya dari kecil ke besar: ${fmt(n)}.` }); },
   ],
   6: [
     () => { const k = pilih([10000, 100000, 1000000]), n = acak(1000000, 9999999);
@@ -180,6 +284,17 @@ daftarMisi("bil", "b2", "Membandingkan, mengurutkan, membulatkan", "⚖️", {
     () => { const harga = [acak(18, 49) * 1000 + acak(1, 9) * 100, acak(18, 49) * 1000 + acak(1, 9) * 100, acak(18, 49) * 1000 + acak(1, 9) * 100]; const h = harga.reduce((s, x) => s + pembulatan(x, 1000), 0);
       return isian(`Ibu membeli tiga barang seharga ${harga.map(rp).join(", ")}. Jika setiap harga dibulatkan ke ribuan terdekat, taksiran jumlah belanja Ibu adalah Rp …`, h,
         { bahas: `${harga.map(x => rp(pembulatan(x, 1000))).join(" + ")} = ${rp(h)}.` }); },
+    () => { const [hal, sat] = pilih([["Pengunjung museum selama satu tahun", "orang"], ["Jumlah buku di perpustakaan daerah", "buku"], ["Penonton pertandingan sepak bola", "orang"], ["Panjang jalan tol yang baru dibangun", "meter"], ["Hasil panen padi sebuah desa", "kg"]]);
+      const k = pilih([100, 1000, 10000]); let n = acak(10000, 99999); if (n % k === 0) n += acak(1, 9) * (k / 10) + 1;
+      return isian(`${hal} adalah <b>${fmt(n)} ${sat}</b>. Dalam laporan, bilangan itu dibulatkan ke <b>${NAMA_BULAT[k]} terdekat</b>. Bilangan yang ditulis dalam laporan adalah …`, pembulatan(n, k),
+        { satuan: sat, petunjuk: `Lihat angka tepat di sebelah kanan tempat ${NAMA_BULAT[k]}.`, bahas: `Angka di kanan tempat ${NAMA_BULAT[k]} adalah ${Math.floor((n % k) / (k / 10))}, ${Math.floor((n % k) / (k / 10)) >= 5 ? "dibulatkan ke atas" : "dibulatkan ke bawah"}. ${fmt(n)} ≈ ${fmt(pembulatan(n, k))}.` }); },
+    () => { let a, b; do { a = acak(21, 89); b = acak(21, 89); } while (a % 10 === 0 || b % 10 === 0 || a % 10 === 5 || b % 10 === 5);
+      const A = pembulatan(a, 10), B = pembulatan(b, 10), [w, isi] = pilih([["bus", "penumpang"], ["kardus", "buku"], ["rak", "botol"], ["keranjang", "telur"], ["kelas", "siswa"]]);
+      return isian(`Ada ${a} ${w}. Setiap ${w} berisi ${b} ${isi}. Dengan membulatkan setiap bilangan ke <b>puluhan terdekat</b>, taksiran banyak ${isi} seluruhnya adalah …`, A * B,
+        { satuan: isi, petunjuk: "Bulatkan kedua bilangan dulu, baru kalikan.", bahas: `${a} ≈ ${A} dan ${b} ≈ ${B}. Taksirannya ${A} × ${B} = ${fmt(A * B)} ${isi}.` }); },
+    () => { const X = acak(20, 98) * 100, sama = new Set(); while (sama.size < 3) sama.add(X - 50 + acak(0, 99)); const beda = ya() ? X - acak(51, 85) : X + acak(50, 85);
+      return pg(`Tiga bilangan berikut jika dibulatkan ke <b>ratusan terdekat</b> hasilnya sama, tetapi satu bilangan hasilnya <b>berbeda</b>. Bilangan yang berbeda itu adalah …`, fmt(beda), [...sama].map(fmt),
+        { petunjuk: "Bulatkan setiap bilangan, lalu bandingkan hasilnya.", bahas: `${[...sama].map(fmt).join(", ")} dibulatkan menjadi ${fmt(X)}, sedangkan ${fmt(beda)} dibulatkan menjadi ${fmt(pembulatan(beda, 100))}.` }); },
   ],
   8: [
     () => { const X = acak(12, 89) * 1000; const c = [X - 500, X + 499, X - acak(1, 499), X + acak(1, 498), X + 500, X - 501, X - acak(600, 900)];
@@ -187,6 +302,27 @@ daftarMisi("bil", "b2", "Membandingkan, mengurutkan, membulatkan", "⚖️", {
         { petunjuk: `Bilangan itu harus di antara ${fmt(X - 500)} dan ${fmt(X + 499)}.`, bahas: `Bilangan dari ${fmt(X - 500)} sampai ${fmt(X + 499)} dibulatkan menjadi ${fmt(X)}.` }); },
     () => { const hari = ["Senin", "Selasa", "Rabu", "Kamis"], v = hari.map(() => acak(12000, 13999)); const t = Math.max(...v), h = hari[v.indexOf(t)];
       return pg(`Pengunjung taman bermain: ${hari.map((x, i) => `${x} ${fmt(v[i])} orang`).join(", ")}. Hari dengan pengunjung <b>paling banyak</b> adalah …`, h, hari.filter(x => x !== h), { bahas: `${fmt(t)} adalah yang terbesar.` }); },
+    () => { const n = acak(100000, 999999), flag = kocok([true, false, ya(), ya()]);
+      const butir = [100, 1000, 10000, 100000].map((k, i) => { const v = pembulatan(n, k), bawah = Math.floor(n / k) * k, salah = bawah !== v ? bawah : v + k;
+        return { t: `Jika dibulatkan ke ${NAMA_BULAT[k]} terdekat, hasilnya ${fmt(flag[i] ? v : salah)}.`, b: flag[i] }; });
+      return bs(`Perhatikan bilangan <b>${fmt(n)}</b>. Tentukan <b>Benar</b> atau <b>Salah</b> untuk setiap pernyataan.`, butir,
+        { petunjuk: "Untuk setiap pembulatan, lihat angka tepat di sebelah kanan tempat yang diminta.", bahas: [100, 1000, 10000, 100000].map(k => `ke ${NAMA_BULAT[k]}: ${fmt(pembulatan(n, k))}`).join("; ") + "." }); },
+    () => { const depan = acak(1, 8) * 1000000 + acak(0, 9) * 100000, x = new Set(); while (x.size < 4) x.add(depan + acak(0, 99999));
+      const kab = ["A", "B", "C", "D"], v = [...x], benar = kab.slice().sort((p, q) => v[kab.indexOf(q)] - v[kab.indexOf(p)]).join(", ");
+      const salah = []; while (salah.length < 3) { const p = kocok(kab).join(", "); if (p !== benar && !salah.includes(p)) salah.push(p); }
+      return pg(`Jumlah penduduk empat kabupaten: ${kab.map((k, i) => `Kabupaten ${k} ${fmt(v[i])} jiwa`).join("; ")}. Urutan kabupaten dari penduduk <b>terbanyak</b> sampai paling sedikit adalah …`, benar, salah,
+        { petunjuk: "Dua angka terdepannya sama. Bandingkan mulai dari tempat puluh ribuan.", bahas: `${kab.map((k, i) => [k, v[i]]).sort((p, q) => q[1] - p[1]).map(([k, n]) => `${k} (${fmt(n)})`).join(" > ")}.` }); },
+    () => { const brg = ambil(["buku cerita", "kotak pensil", "botol minum", "topi", "kaus kaki", "tas kecil"], 3), h = brg.map(() => acak(12, 45) * 1000 + acak(1, 9) * 100);
+      const S = h.reduce((s, x) => s + x, 0), T = h.reduce((s, x) => s + pembulatan(x, 1000), 0), U = ya() ? Math.ceil(S / 10000) * 10000 : Math.floor(S / 10000) * 10000;
+      const bT = ya(), bS = ya(), Tsalah = T + pilih([-1000, 1000]), Ssalah = S + pilih([-1, 1]) * acak(1, 9) * 100;
+      const butir = [
+        { t: `Taksiran jumlah harga (setiap harga dibulatkan ke ribuan terdekat) adalah ${rp(bT ? T : Tsalah)}.`, b: bT },
+        { t: `Jumlah harga yang sebenarnya adalah ${rp(bS ? S : Ssalah)}.`, b: bS },
+        { t: `Uang ${rp(U)} cukup untuk membeli ketiga barang itu.`, b: S <= U },
+        { t: `Taksiran jumlah harga lebih besar daripada jumlah harga sebenarnya.`, b: T > S },
+      ];
+      return bs(`Kakak ingin membeli ${brg.map((b, i) => `${b} seharga ${rp(h[i])}`).join(", ")}. Tentukan <b>Benar</b> atau <b>Salah</b> untuk setiap pernyataan.`, butir,
+        { petunjuk: "Hitung taksiran dan jumlah sebenarnya, lalu bandingkan.", bahas: `Taksiran: ${h.map(x => rp(pembulatan(x, 1000))).join(" + ")} = ${rp(T)}. Sebenarnya: ${rp(S)}. ${S <= U ? "Uang cukup" : "Uang tidak cukup"}.` }); },
   ],
   9: [
     () => { const k = pilih([100, 1000]), X = acak(12, 98) * k * (k === 100 ? 1 : 1), kecil = ya();
@@ -205,6 +341,19 @@ daftarMisi("bil", "b2", "Membandingkan, mengurutkan, membulatkan", "⚖️", {
       if (!c) return isian(`Bilangan cacah terkecil yang dibulatkan ke ratusan terdekat menjadi ${fmt(X)} adalah …`, X - 50, { bahas: `${fmt(X - 50)}.` });
       return isian(`Ada berapa bilangan yang dibulatkan ke ratusan terdekat menjadi <b>${fmt(X)}</b> dan <b>jumlah angka-angkanya ${J}</b>?`, c,
         { petunjuk: `Daftar bilangan dari ${fmt(X - 50)} sampai ${fmt(X + 49)} yang jumlah angkanya ${J}.`, bahas: `Ada ${c} bilangan.` }); },
+    () => { let kartu, Y, cocok; do { kartu = ambil([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 4); Y = acak(2, 9) * 1000; cocok = [...permutasi(kartu)].filter(p => p[0]).map(p => +p.join("")).filter(n => pembulatan(n, 1000) === Y); } while (cocok.length < 2);
+      const besar = ya(), v = besar ? Math.max(...cocok) : Math.min(...cocok);
+      return isian(`Kartu angka: <b>${kartu.join(", ")}</b>. Setiap kartu dipakai tepat satu kali untuk membuat bilangan 4 angka yang jika dibulatkan ke ribuan terdekat hasilnya <b>${fmt(Y)}</b>. Bilangan <b>${besar ? "terbesar" : "terkecil"}</b> yang memenuhi adalah …`, v,
+        { petunjuk: `Bilangan itu harus di antara ${fmt(Y - 500)} dan ${fmt(Y + 499)}.`, bahas: `Bilangan yang memenuhi: ${cocok.sort((p, q) => p - q).map(fmt).join(", ")}. Jawabannya ${fmt(v)}.` }); },
+    () => { let a, b, c; do { a = acak(1010, 4990); b = acak(1010, 4990); c = acak(1010, 4990); } while ([a, b, c].some(v => v % 100 === 50));
+      const S = a + b + c, Q = pembulatan(a, 100) + pembulatan(b, 100) + pembulatan(c, 100), s = Math.abs(S - Q), x = nama();
+      if (!s) return isian(`Taksiran ${fmt(a)} + ${fmt(b)} + ${fmt(c)} dengan membulatkan setiap bilangan ke ratusan terdekat adalah …`, Q, { bahas: `${fmt(Q)}.` });
+      return isian(`${x} menaksir hasil ${fmt(a)} + ${fmt(b)} + ${fmt(c)} dengan membulatkan setiap bilangan ke ratusan terdekat lebih dulu. Selisih hasil taksiran ${x} dengan hasil yang sebenarnya adalah …`, s,
+        { petunjuk: "Hitung taksiran dan hasil sebenarnya, lalu kurangkan yang besar dengan yang kecil.", bahas: `Taksiran: ${fmt(pembulatan(a, 100))} + ${fmt(pembulatan(b, 100))} + ${fmt(pembulatan(c, 100))} = ${fmt(Q)}. Sebenarnya: ${fmt(S)}. Selisih ${fmt(s)}.` }); },
+    () => { const kartu = ambil([1, 2, 3, 4, 5, 6, 7, 8, 9], 4), semua = [...new Set([...permutasi(kartu)].map(p => +p.slice(0, 3).join("")))].sort((x, y) => x - y), k = acak(3, 8), besar = ya();
+      const v = besar ? semua[semua.length - k] : semua[k - 1];
+      return isian(`Dari kartu <b>${kartu.join(", ")}</b> dibuat semua bilangan 3 angka (setiap kartu paling banyak dipakai sekali), lalu diurutkan dari yang <b>${besar ? "terbesar" : "terkecil"}</b>. Bilangan pada urutan ke-${k} adalah …`, v,
+        { petunjuk: "Daftar bilangan dengan angka ratusan yang sama dulu, secara berurutan.", bahas: `Urutan: ${(besar ? semua.slice().reverse() : semua).slice(0, k).map(fmt).join(", ")}. Urutan ke-${k}: ${fmt(v)}.` }); },
   ],
 });
 
@@ -214,24 +363,61 @@ daftarMisi("bil", "b3", "Operasi hitung campuran", "➕", {
   1: [
     () => { const a = acak(12, 89), b = acak(11, 89); return isian(`${a} + ${b} = …`, a + b, { bahas: `${a} + ${b} = ${a + b}.` }); },
     () => { const a = acak(40, 99), b = acak(11, a - 1); return isian(`${a} − ${b} = …`, a - b, { bahas: `${a} − ${b} = ${a - b}.` }); },
+    () => { const a = acak(12, 30), b = acak(10, 30), kls = pilih(["4A", "5A", "5B", "6A", "6B"]);
+      return isian(`Di kelas ${kls} ada ${a} siswa laki-laki dan ${b} siswa perempuan. Banyak siswa kelas ${kls} seluruhnya adalah …`, a + b, { satuan: "siswa", petunjuk: "Seluruhnya → dijumlahkan.", bahas: `${a} + ${b} = ${a + b} siswa.` }); },
+    () => { const x = nama(), benda = pilih(["permen", "kelereng", "stiker", "jeruk", "kue"]), a = acak(30, 95), b = acak(5, a - 10), siapa = pilih(["adiknya", "temannya", "sepupunya"]);
+      return isian(`${x} mempunyai ${a} ${benda}. Sebanyak ${b} ${benda} diberikan kepada ${siapa}. Sisa ${benda} ${x} adalah …`, a - b, { satuan: benda, petunjuk: "Diberikan → berkurang, jadi dikurangi.", bahas: `${a} − ${b} = ${a - b} ${benda}.` }); },
+    () => { const a = acak(11, 60), c = acak(a + 5, 99), tambah = ya();
+      return isian(tambah ? `${a} + □ = ${c}<br>Nilai □ adalah …` : `${c} − □ = ${a}<br>Nilai □ adalah …`, c - a,
+        { petunjuk: tambah ? `□ = ${c} − ${a}` : `□ = ${c} − ${a}`, bahas: tambah ? `${c} − ${a} = ${c - a}, karena ${a} + ${c - a} = ${c}.` : `${c} − ${a} = ${c - a}, karena ${c} − ${c - a} = ${a}.` }); },
+    () => { const a = acak(2, 10), b = acak(2, 5); return isian(`${a} × ${b} = …`, a * b, { petunjuk: `${a} × ${b} artinya ${b} ditambahkan sebanyak ${a} kali.`, bahas: `${a} × ${b} = ${a * b}.` }); },
   ],
   2: [
     () => { const a = acak(250, 899), b = acak(101, 499), p = ya(); const [x, y] = p ? [a, b] : [a + b, b]; return isian(`${fmt(x)} ${p ? "+" : "−"} ${fmt(y)} = …`, p ? x + y : x - y, { bahas: `Hasilnya ${fmt(p ? x + y : x - y)}.` }); },
     () => { const a = acak(12, 98), b = acak(3, 9); return isian(`${a} × ${b} = …`, a * b, { petunjuk: `${a} × ${b} = (${Math.floor(a / 10) * 10} × ${b}) + (${a % 10} × ${b})`, bahas: `${a} × ${b} = ${a * b}.` }); },
+    () => { const [w, b] = ceritaBarang(), k = acak(3, 9), m = acak(4, 12);
+      return isian(`Ada ${k} ${w}. Setiap ${w} berisi ${m} ${b}. Banyak ${b} seluruhnya adalah …`, k * m, { satuan: b, petunjuk: "Sama banyak setiap wadah → dikalikan.", bahas: `${k} × ${m} = ${k * m} ${b}.` }); },
+    () => { const b = acak(2, 9), h = acak(2, 12), bentuk = ya();
+      return isian(bentuk ? `${b * h} : ${b} = …` : `□ × ${b} = ${b * h}<br>Nilai □ adalah …`, h,
+        { petunjuk: `Bilangan berapa yang dikali ${b} hasilnya ${b * h}?`, bahas: `${h} × ${b} = ${b * h}, jadi jawabannya ${h}.` }); },
+    () => { const a = acak(120, 480), b = acak(110, 450), [j1, j2] = pilih([["buku cerita", "buku pelajaran"], ["kursi merah", "kursi biru"], ["bibit cabai", "bibit tomat"], ["botol air", "kotak susu"]]);
+      return isian(`Di gudang sekolah ada ${a} ${j1} dan ${b} ${j2}. Jumlah semuanya adalah …`, a + b, { bahas: `${a} + ${b} = ${a + b}.` }); },
   ],
   3: [
     () => { const a = acak(12, 49), b = acak(11, 29); return isian(`${a} × ${b} = …`, a * b, { bahas: `${a} × ${b} = ${fmt(a * b)}.` }); },
     () => { const b = acak(3, 15), h = acak(12, 60); return isian(`${fmt(b * h)} : ${b} = …`, h, { petunjuk: `Bilangan berapa yang dikali ${b} hasilnya ${b * h}?`, bahas: `${b} × ${h} = ${b * h}, jadi hasilnya ${h}.` }); },
+    () => { const x = nama(), [w, b] = ceritaBarang(), p = acak(3, 9), h = acak(6, 25);
+      return isian(`${x} membagikan ${p * h} ${b} kepada ${p} temannya sama banyak. Setiap teman mendapat … ${b}.`, h, { satuan: b, petunjuk: "Dibagi sama banyak → dibagi.", bahas: `${p * h} : ${p} = ${h} ${b}.` }); },
+    () => { const b = acak(4, 15), h = acak(11, 40);
+      return isian(`${b} × □ = ${b * h}<br>Nilai □ adalah …`, h, { petunjuk: `□ = ${b * h} : ${b}`, bahas: `${b * h} : ${b} = ${h}, karena ${b} × ${h} = ${b * h}.` }); },
+    () => { const r = acak(8, 25), k = acak(11, 30), tempat = pilih(["aula", "lapangan upacara", "gedung pertunjukan", "ruang serbaguna"]);
+      return isian(`Di ${tempat} terdapat ${r} baris kursi. Setiap baris ada ${k} kursi. Banyak kursi seluruhnya adalah …`, r * k, { satuan: "kursi", bahas: `${r} × ${k} = ${r * k} kursi.` }); },
+    () => { const a = acak(120, 450), b = acak(100, 350), c = acak(50, 200); return isian(`${a} + ${b} + ${c} = …`, a + b + c, { petunjuk: "Jumlahkan dua bilangan dulu, lalu tambah yang ketiga.", bahas: `${a} + ${b} = ${a + b}, lalu ${a + b} + ${c} = ${a + b + c}.` }); },
   ],
   4: [
     () => { const a = acak(10, 90), b = acak(3, 12), c = acak(3, 12); return isian(`${a} + ${b} × ${c} = …`, a + b * c, { petunjuk: "Kali dan bagi dikerjakan lebih dulu!", bahas: `${b} × ${c} = ${b * c}, lalu ${a} + ${b * c} = ${a + b * c}.` }); },
     () => { const c = acak(3, 9), q = acak(4, 12), b = c * q, a = acak(q + 5, 99); return isian(`${a} − ${b} : ${c} = …`, a - q, { petunjuk: "Bagi dulu, baru kurangi.", bahas: `${b} : ${c} = ${q}, lalu ${a} − ${q} = ${a - q}.` }); },
     () => { const a = acak(4, 15), b = acak(4, 15), c = acak(5, Math.min(60, a * b - 1)); return isian(`${a} × ${b} − ${c} = …`, a * b - c, { bahas: `${a * b} − ${c} = ${a * b - c}.` }); },
+    () => { const x = nama(), a = acak(10, 40), b = acak(2, 6), c = pilih([5, 6, 8, 10, 12]);
+      return isian(`${x} mempunyai ${a} kelereng. Ia membeli lagi ${b} kantong kelereng. Setiap kantong berisi ${c} kelereng. Banyak kelereng ${x} sekarang adalah …`, a + b * c,
+        { satuan: "kelereng", petunjuk: "Hitung isi semua kantong dulu, lalu tambahkan.", bahas: `${a} + ${b} × ${c} = ${a} + ${b * c} = ${a + b * c} kelereng.` }); },
+    () => { const b = acak(2, 9), q = acak(3, 12), c = acak(5, 60);
+      return isian(`${b * q} : ${b} + ${c} = …`, q + c, { petunjuk: "Bagi dulu, baru tambah.", bahas: `${b * q} : ${b} = ${q}, lalu ${q} + ${c} = ${q + c}.` }); },
+    () => { const r = acak(4, 9), k = acak(6, 12), t = acak(3, r * k - 5), pohon = pilih(["pohon jati", "pohon pisang", "pohon kelapa", "tanaman jagung"]);
+      return isian(`Di kebun ada ${r} baris ${pohon}. Setiap baris ada ${k} ${pohon}. Sebanyak ${t} ${pohon} ditebang. Sisa ${pohon} di kebun adalah …`, r * k - t,
+        { petunjuk: "Hitung semua pohon dulu (kali), lalu kurangi.", bahas: `${r} × ${k} − ${t} = ${r * k} − ${t} = ${r * k - t}.` }); },
   ],
   5: [
     () => { const a = acak(5, 40), b = acak(5, 40), c = acak(3, 9); return isian(`(${a} + ${b}) × ${c} = …`, (a + b) * c, { petunjuk: "Kerjakan yang di dalam kurung dulu.", bahas: `(${a + b}) × ${c} = ${(a + b) * c}.` }); },
     () => { const c = acak(3, 9), q = acak(5, 20), b = acak(10, 90), a = b + c * q; return isian(`(${a} − ${b}) : ${c} = …`, q, { bahas: `${a} − ${b} = ${a - b}, lalu ${a - b} : ${c} = ${q}.` }); },
     () => { const a = acak(6, 15), b = acak(6, 15), d = acak(2, 9), q = acak(2, 9), c = d * q; return isian(`${a} × ${b} − ${c} : ${d} = …`, a * b - q, { bahas: `${a * b} − ${q} = ${a * b - q}.` }); },
+    () => { const a = acak(3, 9), b = acak(10, 30), c = acak(2, b - 3), plus = ya(), h = plus ? a * (b + c) : a * (b - c);
+      return isian(`${a} × (${b} ${plus ? "+" : "−"} ${c}) = …`, h, { petunjuk: "Kerjakan yang di dalam kurung dulu.", bahas: `${b} ${plus ? "+" : "−"} ${c} = ${plus ? b + c : b - c}, lalu ${a} × ${plus ? b + c : b - c} = ${h}.` }); },
+    () => { const [x, y] = namaBeda(2), k = acak(3, 8), h = acak(4, 12), t = k * h, a = acak(5, t - 5), b = t - a;
+      return isian(`${x} membawa ${a} kue dan ${y} membawa ${b} kue. Semua kue itu dimasukkan ke dalam ${k} kotak sama banyak. Setiap kotak berisi … kue.`, h,
+        { satuan: "kue", petunjuk: "Jumlahkan dulu kuenya, lalu bagi.", bahas: `(${a} + ${b}) : ${k} = ${t} : ${k} = ${h} kue.` }); },
+    () => { const b = acak(2, 9), q = acak(3, 15), a = b * q, c = acak(2, 9);
+      return isian(`${a} : ${b} × ${c} = …`, q * c, { petunjuk: "Kali dan bagi setara: kerjakan dari kiri.", bahas: `${a} : ${b} = ${q}, lalu ${q} × ${c} = ${q * c}.` }); },
   ],
   6: [
     () => { const a = acak(12, 35), b = acak(12, 35), c = acak(6, 25), d = acak(6, 25); return isian(`${a} × ${b} + ${c} × ${d} = …`, a * b + c * d, { bahas: `${a * b} + ${c * d} = ${fmt(a * b + c * d)}.` }); },
@@ -288,6 +474,15 @@ daftarMisi("bil", "b4", "KPK & FPB", "🔁", {
     keTKA(() => { const n = acak(3, 9), b = n * acak(3, 11); return pg(`Bilangan berikut yang merupakan <b>kelipatan ${n}</b> adalah …`, b, [b + 1, b - 1, b + 2, b - 2].filter(x => x % n), { bahas: `${b} = ${n} × ${b / n}.` }); }),
     () => { const n = acak(3, 9), a = n * acak(2, 6), c = a + n * acak(2, 5); let k = 0; for (let x = a + 1; x < c; x++) if (x % n === 0) k++;
       return isian(`Banyak kelipatan ${n} yang lebih dari ${a} dan kurang dari ${c} adalah …`, k, { petunjuk: `Tulis kelipatan ${n} mulai setelah ${a}.`, bahas: `Ada ${k} kelipatan ${n} di antara ${a} dan ${c}.` }); },
+    () => { const n = acak(3, 9), m = n * acak(3, 10), a = m - acak(1, n - 1), b = a + n;
+      return isian(`Kelipatan ${n} yang terletak di antara ${a} dan ${b} adalah …`, m, { petunjuk: `Coba bagi setiap bilangan di antaranya dengan ${n}.`, bahas: `${m} = ${n} × ${m / n}. Hanya ${m} kelipatan ${n} di antara ${a} dan ${b}.` }); },
+    () => { const n = acak(3, 9), a = acak(10, 60), v = (Math.floor(a / n) + 1) * n;
+      return isian(`Kelipatan ${n} yang paling kecil tetapi <b>lebih dari ${a}</b> adalah …`, v, { petunjuk: `Mulai dari ${a}, cari bilangan berikutnya yang habis dibagi ${n}.`, bahas: `${Math.floor(a / n) * n} ≤ ${a}, jadi kelipatan berikutnya ${v} = ${n} × ${v / n}.` }); },
+    () => { const n = acak(2, 9), k = acak(3, 9), [benda, bunyi] = pilih([["Lampu hias", "berkedip"], ["Jam dinding", "berdenting"], ["Air mancur", "menyembur"], ["Alarm mainan", "berbunyi"]]);
+      return isian(`${benda} ${bunyi} setiap ${n} detik. ${benda} itu ${bunyi} untuk pertama kali pada detik ke-${n}. ${benda} itu ${bunyi} untuk yang ke-${k} kalinya pada detik ke-…`, n * k,
+        { petunjuk: `Waktunya adalah kelipatan ${n}.`, bahas: `Kelipatan ${n} yang ke-${k}: ${n} × ${k} = ${n * k}.` }); },
+    () => { const n = acak(2, 12), s = acak(1, 3), j = acak(0, 4), deret = [0, 1, 2, 3, 4].map(i => (i === j ? "□" : n * (s + i)));
+      return isian(`${deret.join(", ")}<br>Barisan di atas adalah kelipatan ${n}. Nilai □ adalah …`, n * (s + j), { petunjuk: `Setiap bilangan bertambah ${n}.`, bahas: `${[0, 1, 2, 3, 4].map(i => n * (s + i)).join(", ")}. Jadi □ = ${n * (s + j)}.` }); },
   ],
   2: [
     () => { const n = pilih([12, 16, 18, 20, 24, 28, 30, 32, 36, 40, 42, 45, 48]); return isian(`Banyak faktor dari ${n} adalah …`, faktor(n).length, { petunjuk: "Cari pasangan perkalian yang hasilnya bilangan itu.", bahas: `Faktor ${n}: ${faktor(n).join(", ")} → ${faktor(n).length} faktor.` }); },
@@ -296,6 +491,16 @@ daftarMisi("bil", "b4", "KPK & FPB", "🔁", {
     () => { const n = pilih([24, 30, 36, 40, 42, 48, 54, 60, 64, 72, 84, 90, 96, 100]), fs = faktor(n), b = ya(); const v = b ? fs[fs.length - 2] : fs[1];
       return isian(`Faktor dari ${n} yang ${b ? "terbesar selain " + n + " sendiri" : "terkecil selain 1"} adalah …`, v, { bahas: `Faktor ${n}: ${fs.join(", ")}.` }); },
     () => { const n = pilih([12, 18, 20, 24, 28, 30, 36, 40, 45]), fs = faktor(n); return isian(`Jumlah semua faktor dari ${n} adalah …`, fs.reduce((a, c) => a + c, 0), { petunjuk: "Tulis semua faktornya, lalu jumlahkan.", bahas: `${fs.join(" + ")} = ${fs.reduce((a, c) => a + c, 0)}.` }); },
+    () => { const a = acak(2, 9), b = acak(3, 12), n = a * b, kiri = ya();
+      return isian(kiri ? `${n} = ${a} × □<br>Nilai □ adalah …` : `${n} = □ × ${b}<br>Nilai □ adalah …`, kiri ? b : a,
+        { petunjuk: "Pasangan faktor: dua bilangan yang dikalikan hasilnya bilangan itu.", bahas: `${a} × ${b} = ${n}, jadi □ = ${kiri ? b : a}. Pasangan ${a} dan ${b} adalah faktor dari ${n}.` }); },
+    () => { const x = nama(), wadah = pilih(["kantong", "kotak", "toples", "keranjang"]), benda = pilih(["kelereng", "permen", "kancing", "jeruk", "manik-manik"]), k = acak(2, 9), h = acak(3, 12), n = k * h;
+      return isian(`${x} memasukkan ${n} ${benda} ke dalam ${k} ${wadah} sama banyak tanpa sisa. Setiap ${wadah} berisi … ${benda}.`, h,
+        { satuan: benda, petunjuk: `${k} adalah faktor dari ${n}. Cari pasangannya.`, bahas: `${n} : ${k} = ${h}, karena ${k} × ${h} = ${n}.` }); },
+    () => { const n = pilih([12, 16, 18, 20, 24, 28, 30, 32, 36, 40, 42, 44, 45, 48, 50, 54, 56, 60, 63, 64, 70, 72, 75, 80, 84, 90, 96, 100]), fs = faktor(n), genap = ya(), d = fs.filter(f => (f % 2 === 0) === genap);
+      if (!d.length) return isian(`Banyak faktor ganjil dari ${n} adalah …`, fs.filter(f => f % 2).length, { bahas: `Faktor ${n}: ${fs.join(", ")}.` });
+      return isian(`Banyak faktor <b>${genap ? "genap" : "ganjil"}</b> dari ${n} adalah …`, d.length,
+        { petunjuk: "Tulis semua faktornya dulu, lalu pilih.", bahas: `Faktor ${n}: ${fs.join(", ")}. Faktor ${genap ? "genap" : "ganjil"}: ${d.join(", ")} → ${d.length} faktor.` }); },
   ],
   3: [
     () => { const a = acak(2, 6), b = acak(3, 8); if (a === b) return isian(`KPK dari 4 dan 6 adalah …`, 12, { bahas: "Kelipatan 4: 4, 8, 12. Kelipatan 6: 6, 12." });
@@ -309,6 +514,15 @@ daftarMisi("bil", "b4", "KPK & FPB", "🔁", {
     () => { let a = acak(4, 24), b = acak(4, 24); while (a === b) b = acak(4, 24); return isian(`KPK dari ${a} dan ${b} adalah …`, kpk(a, b), { petunjuk: "Pakai faktorisasi prima: ambil semua faktor dengan pangkat terbesar.", bahas: `${a} = ${tulisFP(faktorPrima(a))}, ${b} = ${tulisFP(faktorPrima(b))}. KPK = ${kpk(a, b)}.` }); },
     () => { const g = acak(3, 16), a = g * acak(2, 6), b = g * acak(2, 6); if (a === b) return isian(`FPB dari 36 dan 48 adalah …`, 12, { bahas: "FPB = 12." });
       return isian(`FPB dari ${a} dan ${b} adalah …`, fpb(a, b), { petunjuk: "Ambil faktor prima yang sama dengan pangkat terkecil.", bahas: `${a} = ${tulisFP(faktorPrima(a))}, ${b} = ${tulisFP(faktorPrima(b))}. FPB = ${fpb(a, b)}.` }); },
+    () => { let a = acak(2, 9), b = acak(3, 12); while (a === b || kpk(a, b) === Math.max(a, b)) b = acak(3, 12); const [l1, l2] = ambil(["merah", "kuning", "hijau", "biru", "ungu"], 2);
+      return isian(`Lampu ${l1} menyala setiap ${a} detik dan lampu ${l2} setiap ${b} detik. Kedua lampu baru saja menyala bersama. Kedua lampu akan menyala bersama lagi setelah … detik.`, kpk(a, b),
+        { satuan: "detik", petunjuk: "Menyala bersama lagi → cari KPK.", bahas: `Kelipatan ${a}: ${[1, 2, 3, 4, 5].map(i => a * i).join(", ")}, … Kelipatan ${b}: ${[1, 2, 3].map(i => b * i).join(", ")}, … KPK = ${kpk(a, b)} detik.` }); },
+    () => { const g = acak(2, 8); let x, y; do { x = acak(2, 6); y = acak(2, 6); } while (x === y || fpb(x, y) !== 1); const A = g * x, B = g * y, [b1, b2] = pilih([["pensil", "buku tulis"], ["roti", "susu kotak"], ["jeruk", "salak"], ["balon", "topi pesta"]]);
+      return isian(`Bu guru mempunyai ${A} ${b1} dan ${B} ${b2}. Semuanya akan dibagikan kepada beberapa anak sehingga setiap anak mendapat ${b1} dan ${b2} sama banyak. Paling banyak ada … anak yang mendapat bagian.`, g,
+        { satuan: "anak", petunjuk: "Dibagi sama banyak kepada sebanyak-banyaknya anak → cari FPB.", bahas: `FPB ${A} dan ${B} = ${g}. Setiap anak mendapat ${x} ${b1} dan ${y} ${b2}.` }); },
+    () => { const f = {}; const ps = ambil([2, 3, 5, 7], acak(2, 3)); ps.forEach(p => { f[p] = p === 2 ? acak(1, 3) : p === 3 ? acak(1, 2) : 1; }); const ur = {}; Object.keys(f).sort((a, b) => a - b).forEach(k => { ur[k] = f[k]; });
+      const n = Object.entries(ur).reduce((s, [p, e]) => s * p ** e, 1);
+      return isian(`Bilangan yang faktorisasi primanya ${tulisFP(ur)} adalah …`, n, { petunjuk: "Kalikan semua faktornya. Pangkat 2 artinya dikali dirinya sendiri.", bahas: `${Object.entries(ur).map(([p, e]) => Array(e).fill(p).join(" × ")).join(" × ")} = ${fmt(n)}.` }); },
   ],
   5: [
     () => { let n; do n = pilih([2, 3]) ** acak(1, 3) * pilih([3, 5, 7, 9, 15, 25, 21]) * pilih([1, 2, 5]); while (Object.keys(faktorPrima(n)).length < 2); const f = faktorPrima(n), k = pilih(Object.keys(f)), sembunyi = ya();
@@ -350,6 +564,21 @@ daftarMisi("bil", "b4", "KPK & FPB", "🔁", {
     () => { const g = acak(5, 25), [x, y, z] = ambil([2, 3, 4, 5, 6, 7], 3), A = g * x, B = g * y, C = g * z;
       return isian(`Tiga utas tali panjangnya ${A} cm, ${B} cm, dan ${C} cm. Ketiganya dipotong menjadi potongan yang sama panjang, <b>sepanjang-panjangnya</b>, tanpa sisa. Banyak potongan tali seluruhnya adalah …`, x + y + z,
         { petunjuk: "Panjang tiap potongan = FPB ketiga panjang tali.", bahas: `FPB = ${g} cm. Potongan: ${A}:${g} + ${B}:${g} + ${C}:${g} = ${x} + ${y} + ${z} = ${x + y + z}.` }); },
+    () => { const [a, b, c] = pilih([[2, 3, 4], [2, 3, 5], [3, 4, 6], [2, 4, 5], [4, 6, 8], [2, 5, 6], [3, 5, 6], [4, 5, 10], [3, 6, 8], [2, 6, 9]]), K = kpk3(a, b, c), [x, y, z] = namaBeda(3);
+      const [bln, pjg, blnB] = pilih([["Juli", 31, "Agustus"], ["Maret", 31, "April"], ["April", 30, "Mei"], ["Juni", 30, "Juli"], ["Oktober", 31, "November"], ["Januari", 31, "Februari"]]), t = acak(5, pjg - 2);
+      const tgl = d => (t + d <= pjg ? `${t + d} ${bln}` : `${t + d - pjg} ${blnB}`), benar = tgl(K);
+      const salah = [a * b * c, K + c, K - a, K + 1, a + b + c, a * b, K - 1].filter(d => d > 0 && d !== K && t + d <= pjg + 28).map(tgl);
+      return pg(`Mulai tanggal <b>${t} ${bln}</b>, ${x} piket setiap ${a} hari, ${y} setiap ${b} hari, dan ${z} setiap ${c} hari. Pada tanggal itu mereka piket bersama. Mereka akan piket bersama lagi pada tanggal …`, benar, salah,
+        { petunjuk: `Cari KPK ketiga bilangan. Ingat, bulan ${bln} ada ${pjg} hari.`, bahas: `KPK ${a}, ${b}, dan ${c} = ${K}. ${t} ${bln} + ${K} hari = ${benar}${t + K > pjg ? ` (karena ${bln} hanya ${pjg} hari, ${t + K} − ${pjg} = ${t + K - pjg})` : ""}.` }); },
+    () => { const g = pilih([20, 25, 30, 40, 50, 60]); let x, y; do { [x, y] = ambil([2, 3, 4, 5, 6, 7], 2); } while (fpb(x, y) !== 1); const A = g * x, B = g * y, tanya = ya();
+      return isian(`Lantai sebuah ruangan berukuran ${A} cm × ${B} cm akan ditutup ubin berbentuk persegi yang sama besar. Ubin dipilih <b>sebesar-besarnya</b> agar tidak ada ubin yang dipotong. ${tanya ? "Banyak ubin yang diperlukan adalah …" : "Panjang sisi setiap ubin adalah … cm."}`, tanya ? x * y : g,
+        { satuan: tanya ? "ubin" : "cm", petunjuk: "Sisi ubin terbesar = FPB panjang dan lebar lantai.", bahas: `FPB ${A} dan ${B} = ${g}, jadi sisi ubin ${g} cm. Banyak ubin ${A} : ${g} × ${B} : ${g} = ${x} × ${y} = ${x * y}.` }); },
+    () => { const g = acak(2, 9); let x, y; do { [x, y] = ambil([2, 3, 4, 5, 7], 2); } while (fpb(x, y) !== 1); const A = g * Math.min(x, y), B = g * Math.max(x, y), F = g, K = g * x * y;
+      const pasang = [[`FPB dari ${A} dan ${B} adalah ${F}.`, `FPB dari ${A} dan ${B} adalah ${2 * F}.`], [`KPK dari ${A} dan ${B} adalah ${K}.`, `KPK dari ${A} dan ${B} adalah ${A * B}.`],
+        [`${A} × ${B} sama dengan FPB × KPK kedua bilangan itu.`, `${A} + ${B} sama dengan FPB + KPK kedua bilangan itu.`], ["KPK kedua bilangan itu habis dibagi FPB-nya.", "FPB kedua bilangan itu habis dibagi KPK-nya."]];
+      const flag = kocok([true, false, ya(), ya()]);
+      return pgk(`Pilih <b>semua</b> pernyataan yang benar tentang bilangan <b>${A}</b> dan <b>${B}</b>.`, pasang.map((p, i) => ({ t: flag[i] ? p[0] : p[1], b: flag[i] })),
+        { petunjuk: "Hitung FPB dan KPK dengan faktorisasi prima, lalu periksa satu per satu.", bahas: `${A} = ${tulisFP(faktorPrima(A))}, ${B} = ${tulisFP(faktorPrima(B))}. FPB = ${F}, KPK = ${K}. ${A} × ${B} = ${fmt(A * B)} = ${F} × ${K}.` }); },
   ],
   10: [
     () => { const g = acak(2, 12), x = acak(2, 9); let y = acak(2, 9); while (fpb(x, y) !== 1 || x === y) y = acak(2, 11); const A = g * x, B = g * y, K = kpk(A, B);
@@ -361,6 +590,16 @@ daftarMisi("bil", "b4", "KPK & FPB", "🔁", {
     () => { const [a, b] = ambil([3, 4, 5, 6, 8], 2), K = kpk(a, b), lo = acak(1, 4) * 100, hi = lo + 100; let c = 0; for (let n = lo; n <= hi; n++) if (n % K === 0) c++;
       return isian(`Banyak bilangan antara ${lo} dan ${hi} (termasuk keduanya) yang habis dibagi ${a} dan juga habis dibagi ${b} adalah …`, c,
         { petunjuk: `Habis dibagi ${a} dan ${b} = habis dibagi KPK-nya.`, bahas: `KPK = ${K}. Kelipatan ${K} di antara ${lo}–${hi} ada ${c}.` }); },
+    () => { const [a, b, c] = pilih([[2, 3, 4], [2, 3, 5], [3, 4, 6], [4, 5, 6], [2, 5, 8], [3, 5, 6], [4, 6, 9], [3, 4, 5]]), K = kpk3(a, b, c), N = acak(2, 9) * 100 + acak(1, 99), v = (Math.floor(N / K) + 1) * K;
+      return isian(`Bilangan terkecil yang <b>lebih dari ${N}</b> dan habis dibagi ${a}, ${b}, dan ${c} adalah …`, v,
+        { petunjuk: "Habis dibagi ketiganya berarti kelipatan KPK-nya.", bahas: `KPK ${a}, ${b}, ${c} = ${K}. ${N} : ${K} = ${Math.floor(N / K)} sisa ${N % K}, jadi kelipatan ${K} berikutnya ${(Math.floor(N / K) + 1)} × ${K} = ${v}.` }); },
+    () => { const [a, b] = ambil([4, 5, 6, 8, 9, 10, 12], 2), K = kpk(a, b), d = acak(1, Math.min(a, b) - 1);
+      return isian(`Sebuah bilangan jika dibagi ${a} bersisa ${a - d} dan jika dibagi ${b} bersisa ${b - d}. Bilangan cacah terkecil yang memenuhi adalah …`, K - d,
+        { petunjuk: `Perhatikan: bilangan itu kurang ${d} dari kelipatan ${a} dan juga kurang ${d} dari kelipatan ${b}.`, bahas: `Bilangan + ${d} habis dibagi ${a} dan ${b}, jadi bilangan + ${d} = KPK = ${K}. Bilangannya ${K} − ${d} = ${K - d}.` }); },
+    () => { const [a, b, c] = pilih([[10, 15, 20], [12, 15, 20], [10, 12, 15], [15, 20, 30], [12, 18, 24], [20, 30, 40]]), K = kpk3(a, b, c), j0 = acak(6, 8) * 60, durasi = K * acak(2, 4) + pilih([0, 10, 20]);
+      const kali = Math.floor(durasi / K) + 1;
+      return isian(`Di terminal, bus jurusan A berangkat setiap ${a} menit, jurusan B setiap ${b} menit, dan jurusan C setiap ${c} menit. Ketiganya berangkat bersama pukul ${pkl(j0)}. Dari pukul ${pkl(j0)} sampai pukul ${pkl(j0 + durasi)}, ketiga bus berangkat bersama sebanyak … kali (termasuk pukul ${pkl(j0)}).`, kali,
+        { petunjuk: "Cari KPK ketiga waktu, lalu hitung berapa kali muat dalam rentang waktu itu.", bahas: `KPK = ${K} menit. Waktu ${durasi} menit memuat ${Math.floor(durasi / K)} kali ${K} menit, ditambah keberangkatan pukul ${pkl(j0)}: ${kali} kali.` }); },
   ],
 });
 
@@ -385,24 +624,77 @@ daftarMisi("bil", "b5", "Pecahan", "🍕", {
       { gambar: svgPecahan(p, q, ya() ? "lingkaran" : "batang"), sederhana: false, petunjuk: "Pembilang = bagian diarsir, penyebut = semua bagian.", bahas: `${p} bagian diarsir dari ${q} bagian → ${pc(p, q)}.` }); },
     () => { const q = acak(3, 10), p = acak(1, q - 1); return isianPc(`Pecahan yang menunjukkan bagian yang <b>tidak diarsir</b> adalah …`, q - p, q,
       { gambar: svgPecahan(p, q, "batang"), sederhana: false, bahas: `${q - p} dari ${q} bagian tidak diarsir → ${pc(q - p, q)}.` }); },
+    () => { const NAMA_Q = { 2: "dua", 3: "tiga", 4: "empat", 5: "lima", 6: "enam", 7: "tujuh", 8: "delapan", 9: "sembilan", 10: "sepuluh" }, q = acak(2, 10), p = acak(1, q - 1);
+      return isianPc(`Pecahan <i>"${terbilang(p)} per ${NAMA_Q[q]}"</i> ditulis …`, p, q,
+        { sederhana: false, petunjuk: "Angka sebelum kata \"per\" adalah pembilang (atas), sesudahnya penyebut (bawah). Ketik dengan garis miring, misalnya 2/5.", bahas: `${terbilang(p)} per ${NAMA_Q[q]} = ${pc(p, q)}.` }); },
+    () => { const x = nama(), [mkn, ptg] = pilih([["pizza", "potong"], ["kue bolu", "potong"], ["semangka", "potong"], ["cokelat batangan", "kotak kecil"], ["martabak", "potong"]]), q = acak(4, 12), p = acak(1, q - 1);
+      return isianPc(`Sebuah ${mkn} dibagi menjadi ${q} ${ptg} sama besar. ${x} memakan ${p} ${ptg}. Bagian ${mkn} yang dimakan ${x} adalah …`, p, q,
+        { sederhana: false, petunjuk: "Pembilang = bagian yang dimakan, penyebut = semua bagian.", bahas: `${p} dari ${q} ${ptg} → ${pc(p, q)}.` }); },
+    () => { const q = acak(2, 12), p = acak(1, q - 1), tanya = ya();
+      return isian(`Pada pecahan ${pc(p, q)}, ${tanya ? "<b>penyebutnya</b>" : "<b>pembilangnya</b>"} adalah …`, tanya ? q : p,
+        { petunjuk: "Pembilang di atas garis, penyebut di bawah garis.", bahas: `${pc(p, q)}: pembilang ${p}, penyebut ${q}.` }); },
+    () => { const q = acak(2, 12);
+      return isian(`1 = ${pc("□", q)}<br>Nilai □ adalah …`, q, { petunjuk: "Pecahan bernilai 1 jika pembilang sama dengan penyebut.", bahas: `${pc(q, q)} = 1, jadi □ = ${q}.` }); },
   ],
   2: [
     () => { const [p, q] = sed(...pcAcak(6)), k = acak(2, 6), atas = ya();
       return isian(`${pc(p, q)} = ${atas ? pc("□", q * k).replace("□", "□") : pc(p * k, "□")}<br>Nilai □ adalah …`, atas ? p * k : q * k,
         { petunjuk: "Pecahan senilai: kalikan pembilang dan penyebut dengan bilangan yang sama.", bahas: `${pc(p, q)} = ${pc(p * k, q * k)} (dikali ${k}).` }); },
+    () => { const x = nama(), mkn = pilih(["kue lapis", "roti tawar", "pizza", "agar-agar", "bolu pandan"]), q = acak(3, 12), p = acak(1, q - 1);
+      return isianPc(`${x} memotong ${mkn} menjadi ${q} bagian sama besar. Sebanyak ${p} bagian sudah dimakan. Bagian ${mkn} yang <b>tersisa</b> adalah …`, q - p, q,
+        { sederhana: false, petunjuk: "Sisa = semua bagian dikurangi yang dimakan.", bahas: `${q} − ${p} = ${q - p} bagian tersisa dari ${q} → ${pc(q - p, q)}.` }); },
+    () => { const q = acak(3, 12), a = acak(1, q - 2), b = acak(1, q - a - 1);
+      return isianPc(`${pc(a, q)} + ${pc(b, q)} = …`, a + b, q, { sederhana: false, petunjuk: "Penyebutnya sama: jumlahkan pembilangnya, penyebutnya tetap.", bahas: `${pc(a, q)} + ${pc(b, q)} = ${pc(a + b, q)}.` }); },
+    () => { const q = acak(4, 12), x = new Set(); while (x.size < 3) x.add(acak(1, q - 1)); const arr = [...x], besar = ya(), j = besar ? Math.max(...arr) : Math.min(...arr);
+      return isianPc(`Pecahan <b>${besar ? "terbesar" : "terkecil"}</b> di antara ${arr.map(p => pc(p, q)).join(", ")} adalah …`, j, q,
+        { sederhana: false, petunjuk: "Penyebutnya sama, bandingkan pembilangnya.", bahas: `Penyebut sama, pembilang ${besar ? "terbesar" : "terkecil"} ${j}. Jawabannya ${pc(j, q)}.` }); },
+    () => { const [p, q] = sed(...pcAcak(8)), k = acak(2, 5), bawah = ya();
+      return isian(`${pc(p * k, q * k)} = ${bawah ? pc(p, "□") : pc("□", q)}<br>Nilai □ adalah …`, bawah ? q : p,
+        { petunjuk: `Bagi pembilang dan penyebut dengan ${k}.`, bahas: `${pc(p * k, q * k)} = ${pc(p, q)} (dibagi ${k}).` }); },
   ],
   3: [
     () => { const [p, q] = sed(...pcAcak(9)), k = acak(2, 8); return isianPc(`Bentuk paling sederhana dari ${pc(p * k, q * k)} adalah …`, p, q, { petunjuk: "Bagi pembilang dan penyebut dengan FPB-nya.", bahas: `FPB ${p * k} dan ${q * k} = ${fpb(p * k, q * k)}. Hasilnya ${pc(p, q)}.` }); },
+    () => { const n = pilih([12, 16, 18, 20, 24, 30, 32, 36, 40]), a = pilih(faktor(n).filter(f => f > 1 && f < n).flatMap(f => [f, n - f]).filter(v => fpb(v, n) > 1 && v < n)), ciri = pilih(["memakai kacamata", "membawa bekal", "suka bersepeda", "ikut pramuka", "berambut panjang"]);
+      return isianPc(`Di sebuah kelas ada ${n} siswa. Sebanyak ${a} siswa ${ciri}. Bagian siswa yang ${ciri} dalam pecahan <b>paling sederhana</b> adalah …`, a, n,
+        { petunjuk: `Tulis ${a}/${n}, lalu sederhanakan.`, bahas: `${pc(a, n)} dibagi FPB ${fpb(a, n)} = ${pcS(a, n)}.` }); },
+    () => { const q = acak(2, 9), w = acak(1, 5), s = acak(1, q - 1), p = w * q + s;
+      return isianPc(`Ubah ${pc(p, q)} menjadi pecahan campuran.`, p, q, { petunjuk: `${p} : ${q} = … sisa … . Hasil bagi jadi bilangan bulat, sisanya jadi pembilang. Ketik dengan spasi, misalnya 2 1/3.`, bahas: `${p} : ${q} = ${w} sisa ${s}, jadi ${pc(p, q)} = ${pcT(p, q)}.` }); },
+    () => { const q = acak(2, 9), w = acak(1, 5), s = acak(1, q - 1);
+      return isian(`${w}&nbsp;${pc(s, q)} = ${pc("□", q)}<br>Nilai □ adalah …`, w * q + s, { petunjuk: "Kalikan bilangan bulat dengan penyebut, lalu tambah pembilangnya.", bahas: `${w} × ${q} + ${s} = ${w * q + s}, jadi ${w}&nbsp;${pc(s, q)} = ${pc(w * q + s, q)}.` }); },
+    () => { const q = pilih([4, 6, 8, 9, 10, 12]), p = pilih([...Array(q - 1).keys()].map(i => i + 1).filter(v => fpb(q - v, q) > 1));
+      return isianPc(`1 − ${pc(p, q)} = … (tulis dalam bentuk paling sederhana)`, q - p, q, { petunjuk: `1 = ${pc(q, q)}.`, bahas: `${pc(q, q)} − ${pc(p, q)} = ${pc(q - p, q)} = ${pcS(q - p, q)}.` }); },
   ],
   4: [
     keTKA(() => { let a = pcAcak(9), b = pcAcak(9); const v = a[0] / a[1] - b[0] / b[1], t = Math.abs(v) < 1e-9 ? "=" : v > 0 ? ">" : "<";
       return pgTetap(`${pc(...a)} … ${pc(...b)}<br>Tanda yang tepat adalah …`, [">", "<", "="], t, { petunjuk: "Samakan penyebutnya dulu.", bahas: `${pc(a[0] * b[1], a[1] * b[1])} ${t} ${pc(b[0] * a[1], a[1] * b[1])}.` }); }),
     () => { const q = acak(4, 12), a = acak(1, q - 1), b = acak(1, q - 1); if (a === b) return isianPc(`${pc(1, 2)} + ${pc(1, 4)} = …`, 3, 4, { bahas: "2/4 + 1/4 = 3/4." }); const [x, y] = a > b ? [a, b] : [b, a]; return isianPc(`${pc(x, q)} − ${pc(y, q)} = …`, x - y, q, { petunjuk: "Penyebut sama: kurangkan pembilangnya saja.", bahas: `${pc(x - y, q)} = ${pcS(x - y, q)}.` }); },
     () => { const q = acak(5, 15), a = acak(1, q - 2), b = acak(1, q - a - 1); return isianPc(`${pc(a, q)} + ${pc(b, q)} = …`, a + b, q, { petunjuk: "Penyebut sama: jumlahkan pembilangnya saja.", bahas: `${pc(a + b, q)} = ${pcS(a + b, q)}.` }); },
+    () => { const x = nama(), q = pilih([4, 5, 6, 8, 10]), a = acak(1, q - 2), b = acak(1, q - a - 1), [mnm, sat] = pilih([["susu", "liter"], ["air putih", "liter"], ["jus jeruk", "liter"]]);
+      return isianPc(`${x} minum ${pc(a, q)} ${sat} ${mnm} pada pagi hari dan ${pc(b, q)} ${sat} pada sore hari. Banyak ${mnm} yang diminum ${x} seluruhnya adalah … ${sat}.`, a + b, q,
+        { satuan: sat, petunjuk: "Penyebut sama: jumlahkan pembilangnya. Sederhanakan bila bisa.", bahas: `${pc(a, q)} + ${pc(b, q)} = ${pc(a + b, q)} = ${pcS(a + b, q)} ${sat}.` }); },
+    () => { const x = nama(), q = pilih([3, 4, 5, 6, 8, 10, 12]), a = acak(2, q - 1), b = acak(1, a - 1), [bnd, sat] = pilih([["pita", "meter"], ["tali", "meter"], ["kain", "meter"], ["tepung", "kg"]]);
+      return isianPc(`${x} mempunyai ${pc(a, q)} ${sat} ${bnd}. Sebanyak ${pc(b, q)} ${sat} dipakai untuk prakarya. Sisa ${bnd} ${x} adalah … ${sat}.`, a - b, q,
+        { satuan: sat, petunjuk: "Penyebut sama: kurangkan pembilangnya. Sederhanakan bila bisa.", bahas: `${pc(a, q)} − ${pc(b, q)} = ${pc(a - b, q)} = ${pcS(a - b, q)} ${sat}.` }); },
+    () => { const q = acak(2, 8), n = q * acak(2, 10), [bnd, sat] = pilih([["kelereng", "butir"], ["siswa", "siswa"], ["permen", "buah"], ["telur", "butir"]]);
+      return isian(`${pc(1, q)} dari ${n} ${bnd} adalah … ${sat}.`, n / q, { satuan: sat, petunjuk: `${pc(1, q)} dari ${n} = ${n} : ${q}.`, bahas: `${n} : ${q} = ${n / q} ${sat}.` }); },
+    () => { const q = acak(3, 9), a = acak(2, q - 1), b = acak(q - a + 1, q - 1);
+      return isianPc(`${pc(a, q)} + ${pc(b, q)} = … (tulis sebagai pecahan campuran)`, a + b, q, { petunjuk: "Jumlahkan pembilangnya. Jika pembilang lebih dari penyebut, ubah ke pecahan campuran. Ketik misalnya 1 2/5.", bahas: `${pc(a, q)} + ${pc(b, q)} = ${pc(a + b, q)} = ${pcS(a + b, q)}.` }); },
   ],
   5: [
     () => { const a = pcAcak(8), b = pcAcak(8), plus = ya() || a[0] / a[1] < b[0] / b[1] + 1e-9 ? true : false; const h = plus ? pTambah(a, b) : pKurang(a, b);
       return isianPc(`${pc(...a)} ${plus ? "+" : "−"} ${pc(...b)} = …`, ...h, { petunjuk: "Samakan penyebut dengan KPK.", bahas: `Hasilnya ${pcT(...h)}.` }); },
+    () => { const x = nama(), [q1, q2] = pilih([[2, 4], [2, 6], [3, 6], [4, 8], [2, 8], [3, 9], [2, 3], [3, 4], [2, 5], [4, 6]]), a = sed(acak(1, q1 - 1), q1), b = sed(acak(1, q2 - 1), q2);
+      const urut = a[0] / a[1] > b[0] / b[1] ? [a, b] : [b, a]; if (Math.abs(a[0] / a[1] - b[0] / b[1]) < 1e-9) return isianPc(`${pc(3, 4)} − ${pc(1, 2)} = …`, 1, 4, { bahas: `${pc(3, 4)} − ${pc(2, 4)} = ${pc(1, 4)}.` });
+      const [A, B] = urut, h = pKurang(A, B), [bnd, guna] = pilih([["tepung", "membuat kue"], ["gula", "membuat teh manis"], ["mentega", "membuat roti"], ["beras", "membuat bubur"]]);
+      return isianPc(`Ibu ${x} mempunyai ${pc(...A)} kg ${bnd}. Sebanyak ${pc(...B)} kg dipakai untuk ${guna}. Sisa ${bnd} adalah … kg.`, ...h,
+        { satuan: "kg", petunjuk: "Samakan penyebutnya dulu, lalu kurangkan.", bahas: `KPK ${A[1]} dan ${B[1]} = ${kpk(A[1], B[1])}. ${pc(A[0] * kpk(A[1], B[1]) / A[1], kpk(A[1], B[1]))} − ${pc(B[0] * kpk(A[1], B[1]) / B[1], kpk(A[1], B[1]))} = ${pcT(...h)} kg.` }); },
+    () => { const [p, q] = sed(...pcAcak(6)), n = q * acak(2, 12), [bnd, sat] = pilih([["siswa", "siswa"], ["kelereng", "butir"], ["buku", "buku"], ["jeruk", "buah"]]);
+      return isian(`${pc(p, q)} dari ${n} ${bnd} adalah … ${sat}.`, n / q * p, { satuan: sat, petunjuk: `Bagi ${n} dengan ${q}, lalu kali ${p}.`, bahas: `${n} : ${q} = ${n / q}, lalu ${n / q} × ${p} = ${n / q * p} ${sat}.` }); },
+    () => { const q = acak(3, 8), w = acak(1, 4), a = acak(1, q - 1), b = acak(1, q - 1), h = [w * q + a + b, q];
+      return isianPc(`${w}&nbsp;${pc(a, q)} + ${pc(b, q)} = …`, ...h, { petunjuk: "Jumlahkan bagian pecahannya, lalu tambahkan bilangan bulatnya.", bahas: `${pc(a, q)} + ${pc(b, q)} = ${pcT(a + b, q)}. Ditambah ${w}: ${pcS(...h)}.` }); },
+    () => { let a = sed(...pcAcak(6)), b = sed(...pcAcak(6)); if (a[0] / a[1] > b[0] / b[1]) [a, b] = [b, a]; if (Math.abs(a[0] / a[1] - b[0] / b[1]) < 1e-9) return isianPc(`${pc(1, 3)} + □ = ${pc(5, 6)}<br>Nilai □ adalah …`, 1, 2, { bahas: `${pc(5, 6)} − ${pc(2, 6)} = ${pc(3, 6)} = ${pc(1, 2)}.` });
+      const h = pKurang(b, a);
+      return isianPc(`${pc(...a)} + □ = ${pc(...b)}<br>Nilai □ adalah …`, ...h, { petunjuk: `□ = ${pc(...b)} − ${pc(...a)}. Samakan penyebutnya.`, bahas: `${pc(...b)} − ${pc(...a)} = ${pcT(...h)}.` }); },
   ],
   6: [
     () => { const w1 = acak(1, 4), w2 = acak(1, 3), a = pcAcak(6), b = pcAcak(6), A = [w1 * a[1] + a[0], a[1]], B = [w2 * b[1] + b[0], b[1]], plus = ya() || A[0] / A[1] <= B[0] / B[1];
@@ -453,28 +745,84 @@ daftarMisi("bil", "b6", "Pecahan ↔ desimal ↔ persen", "💯", {
   2: [
     () => { const p = acak(1, 99); return isian(`${pc(p, 100)} = … (dalam desimal)`, p / 100, { petunjuk: "Perseratus = 2 angka di belakang koma.", bahas: `${pc(p, 100)} = ${desTulis(p / 100)}.` }); },
     () => { const p = acak(1, 99); return isian(`${pc(p, 100)} = … %`, p, { satuan: "%", petunjuk: "Persen artinya per seratus.", bahas: `${pc(p, 100)} = ${p}%.` }); },
+    () => { let p; do p = acak(11, 99); while (p % 10 === 0); return isian(`${desTulis(p / 100)} = ${pc("□", 100)}<br>Nilai □ adalah …`, p, { petunjuk: "Dua angka di belakang koma = perseratus.", bahas: `${desTulis(p / 100)} = ${pc(p, 100)}, jadi □ = ${p}.` }); },
+    () => { const p = acak(5, 95), [ktg, sk] = pilih([["siswa", "suka sepak bola"], ["siswa", "datang dengan berjalan kaki"], ["warga", "menanam pohon di halaman"], ["pengunjung", "membeli tiket terusan"]]);
+      return isian(`Dari 100 ${ktg}, sebanyak ${p} ${ktg} ${sk}. Persentase ${ktg} yang ${sk} adalah … %`, p, { satuan: "%", petunjuk: "Dari 100 → langsung jadi persen.", bahas: `${p} dari 100 = ${pc(p, 100)} = ${p}%.` }); },
+    () => { const p = acak(11, 99); return isian(`${desTulis(p / 100)} = … %`, p, { satuan: "%", petunjuk: "Desimal dua angka di belakang koma: geser koma dua tempat ke kanan.", bahas: `${desTulis(p / 100)} = ${pc(p, 100)} = ${p}%.` }); },
+    () => { const x = new Set(); while (x.size < 3) x.add(acak(11, 99)); const a = [...x], besar = ya(), j = besar ? Math.max(...a) : Math.min(...a);
+      return isian(`Bilangan <b>${besar ? "terbesar" : "terkecil"}</b> di antara ${a.map(v => desTulis(v / 100)).join(" ; ")} adalah …`, j / 100,
+        { petunjuk: "Bandingkan angka persepuluhan dulu, lalu perseratusan.", bahas: `Jawabannya ${desTulis(j / 100)}.` }); },
   ],
   3: [
     () => { let p; do p = acak(2, 98); while (fpb(p, 100) === 1); return isianPc(`${p}% dalam bentuk pecahan paling sederhana adalah …`, p, 100, { petunjuk: `${p}% = ${pc(p, 100)}, lalu sederhanakan.`, bahas: `${pc(p, 100)} = ${pcS(p, 100)}.` }); },
     () => { let p; do p = acak(2, 98); while (fpb(p, 100) === 1); return isianPc(`${desTulis(p / 100)} dalam bentuk pecahan paling sederhana adalah …`, p, 100, { petunjuk: `${desTulis(p / 100)} = ${pc(p, 100)}, lalu sederhanakan.`, bahas: `${pc(p, 100)} = ${pcS(p, 100)}.` }); },
+    () => { const p = acak(1, 9); return isian(`${pc(p, 10)} = … %`, p * 10, { satuan: "%", petunjuk: "Ubah penyebutnya menjadi 100: kalikan atas dan bawah dengan 10.", bahas: `${pc(p, 10)} = ${pc(p * 10, 100)} = ${p * 10}%.` }); },
+    () => { const p = acak(1, 19) * 5, [ktg, a, b] = pilih([["siswa", "naik sepeda ke sekolah", "berjalan kaki"], ["peserta", "memilih lomba lari", "memilih lomba renang"], ["penonton", "duduk di tribun timur", "duduk di tribun barat"]]);
+      return isian(`Sebanyak ${p}% ${ktg} ${a}, sisanya ${b}. Persentase ${ktg} yang ${b} adalah … %`, 100 - p, { satuan: "%", petunjuk: "Seluruhnya = 100%.", bahas: `100% − ${p}% = ${100 - p}%.` }); },
+    () => { const w = acak(1, 9), p = pilih([2, 4, 5, 6, 8]);
+      return isianPc(`${w},${p} dalam bentuk pecahan campuran paling sederhana adalah …`, w * 10 + p, 10, { petunjuk: `${w},${p} = ${w}&nbsp;${pc(p, 10)}, lalu sederhanakan pecahannya. Ketik misalnya 2 1/2.`, bahas: `${w},${p} = ${w}&nbsp;${pc(p, 10)} = ${pcS(w * 10 + p, 10)}.` }); },
+    () => { const a = acak(11, 60), b = acak(11, 99 - a); return isian(`${desTulis(a / 100)} + ${desTulis(b / 100)} = …`, (a + b) / 100, { petunjuk: "Tulis bersusun dengan koma sejajar.", bahas: `${desTulis(a / 100)} + ${desTulis(b / 100)} = ${desTulis((a + b) / 100)}.` }); },
   ],
   4: [
     () => { const q = pilih([2, 4, 5, 20, 25, 50]), p = acak(1, q - 1); return isian(`${pc(p, q)} = … (dalam desimal)`, p / q, { petunjuk: `Ubah penyebutnya menjadi 10 atau 100.`, bahas: `${pc(p, q)} = ${pc(p * 100 / q, 100)} = ${desTulis(p / q)}.` }); },
     () => { const q = pilih([2, 4, 5, 10, 20, 25, 50]), p = acak(1, q - 1); return isian(`${pc(p, q)} = … %`, p * 100 / q, { satuan: "%", bahas: `${pc(p, q)} × 100% = ${fmt(p * 100 / q)}%.` }); },
+    () => { const q = pilih([4, 5, 10, 20, 25, 50]), p = acak(1, q - 1), [bnd, w] = pilih([["kelereng", "merah"], ["balon", "biru"], ["bunga", "kuning"], ["kancing", "putih"]]);
+      return isian(`Dari ${q} ${bnd}, sebanyak ${p} ${bnd} berwarna ${w}. Persentase ${bnd} ${w} adalah … %`, p * 100 / q,
+        { satuan: "%", petunjuk: `Tulis ${p}/${q}, lalu ubah penyebutnya menjadi 100.`, bahas: `${pc(p, q)} = ${pc(p * 100 / q, 100)} = ${fmt(p * 100 / q)}%.` }); },
+    () => { const x = acak(101, 999) / 100, k = pilih([10, 100]); return isian(`${desTulis(x)} × ${k} = …`, bulat(x * k), { petunjuk: `Dikali ${k}: koma bergeser ${k === 10 ? "satu" : "dua"} tempat ke kanan.`, bahas: `${desTulis(x)} × ${k} = ${desTulis(bulat(x * k))}.` }); },
+    () => { const w = acak(1, 9), p = pilih([1, 2, 3]); return isian(`${w}&nbsp;${pc(p, 4)} = … (dalam desimal)`, w + p / 4, { petunjuk: `${pc(p, 4)} = ${pc(p * 25, 100)}.`, bahas: `${pc(p, 4)} = ${desTulis(p / 4)}, jadi ${w}&nbsp;${pc(p, 4)} = ${desTulis(w + p / 4)}.` }); },
+    () => { const kecil = ya(), y = kecil ? acak(101, 999) / 10 : acak(101, 999);
+      return isian(`${desTulis(y)} : ${kecil ? 10 : 100} = …`, bulat(y / (kecil ? 10 : 100)), { petunjuk: `Dibagi ${kecil ? 10 : 100}: koma bergeser ${kecil ? "satu" : "dua"} tempat ke kiri.`, bahas: `${desTulis(y)} : ${kecil ? 10 : 100} = ${desTulis(bulat(y / (kecil ? 10 : 100)))}.` }); },
   ],
   5: [
     () => { const x = acak(1, 199) / 100; return isian(`${desTulis(x)} = … %`, bulat(x * 100), { satuan: "%", petunjuk: "Kalikan 100.", bahas: `${desTulis(x)} × 100% = ${fmt(bulat(x * 100))}%.` }); },
     () => { const x = acak(1, 150); return isian(`${x}% = … (dalam desimal)`, x / 100, { petunjuk: "Bagi 100.", bahas: `${x}% = ${desTulis(x / 100)}.` }); },
+    () => { const pr = pilih([10, 20, 25, 50]), n = (100 / pr) * acak(2, 15), ktg = pilih(["siswa", "peserta lomba", "anggota pramuka", "penonton"]), sk = pilih(["memakai topi", "membawa botol minum", "datang lebih awal", "memakai sepatu putih"]);
+      return isian(`Ada ${n} ${ktg}. Sebanyak ${pr}% di antaranya ${sk}. Banyak ${ktg} yang ${sk} adalah …`, n * pr / 100,
+        { petunjuk: `${pr}% = ${pcS(pr, 100)}, jadi bagi ${n} dengan ${100 / pr}.`, bahas: `${pr}% × ${n} = ${pcS(pr, 100)} × ${n} = ${n * pr / 100}.` }); },
+    () => { const x = nama(), a = acak(15, 50) / 10, b = acak(2, Math.round(a * 10) - 5) / 10, [bnd, sat] = pilih([["pita", "m"], ["kain", "m"], ["tali", "m"], ["kawat", "m"]]);
+      return isian(`Panjang ${bnd} ${x} ${desTulis(a)} ${sat}. ${x} memotongnya ${desTulis(b)} ${sat}. Sisa panjang ${bnd} adalah … ${sat}.`, bulat(a - b, 2),
+        { satuan: sat, petunjuk: "Kurangkan dengan koma sejajar.", bahas: `${desTulis(a)} − ${desTulis(b)} = ${desTulis(bulat(a - b, 2))} ${sat}.` }); },
+    () => { const w = acak(1, 3), q = pilih([2, 4, 5, 10, 20, 25]), p = acak(1, q - 1), v = bulat((w + p / q) * 100);
+      return isian(`${w}&nbsp;${pc(p, q)} = … %`, v, { satuan: "%", petunjuk: "1 = 100%. Ubah bagian pecahannya ke persen, lalu tambahkan.", bahas: `${w} = ${w * 100}% dan ${pc(p, q)} = ${fmt(p * 100 / q)}%. Jumlahnya ${fmt(v)}%.` }); },
+    () => { const q = pilih([8, 40]), p = q === 8 ? pilih([1, 3, 5, 7]) : acak(1, q - 1);
+      return isian(`${pc(p, q)} = … (dalam desimal)`, p / q, { petunjuk: `Ubah penyebutnya menjadi 1.000: kalikan dengan ${1000 / q}.`, bahas: `${pc(p, q)} = ${pc(p * 1000 / q, 1000)} = ${desTulis(p / q)}.` }); },
   ],
   6: [
-    () => { const q = pilih([4, 5, 20, 25]), p = acak(1, q - 1), v = p / q, opsi = [{ t: pc(p, q), v }, { t: desTulis(v + pilih([-0.03, 0.02, -0.05])), v: 0 }, { t: fmt(Math.round(v * 100 + pilih([-4, 3, 6]))) + "%", v: 0 }, { t: desTulis(bulat(v + pilih([0.01, -0.02, 0.04]))), v: 0 }];
+    () => { const q = pilih([4, 5, 20, 25]), p = acak(1, q - 1), v = p / q, geser = (x, d) => bulat(x + d > 0 ? x + d : x + Math.abs(d));   // pengecoh selalu positif (1/20 − 0,05 bukan 0)
+      const opsi = [{ t: pc(p, q), v }, { t: desTulis(geser(v, pilih([-0.03, 0.02, -0.05]))), v: 0 }, { t: fmt(geser(Math.round(v * 100), pilih([-4, 3, 6]))) + "%", v: 0 }, { t: desTulis(geser(v, pilih([0.01, -0.02, 0.04]))), v: 0 }];
       opsi.forEach(o => { if (!o.v) o.v = o.t.includes("%") ? parseFloat(o.t) / 100 : parseFloat(o.t.replace(",", ".")); }); const b = ya(); const j = opsi.reduce((m, o) => ((b ? o.v > m.v : o.v < m.v) ? o : m));
       if (opsi.filter(o => o.v === j.v).length > 1) return isian(`${pc(3, 4)} = … %`, 75, { satuan: "%", bahas: "75%." });
       return pg(`Bilangan <b>${b ? "terbesar" : "terkecil"}</b> di antara ${opsi.map(o => o.t).join(" ; ")} adalah …`, j.t, opsi.filter(o => o !== j).map(o => o.t), { petunjuk: "Ubah semuanya ke desimal.", bahas: opsi.map(o => `${o.t} = ${desTulis(o.v)}`).join("; ") + "." }); },
+    () => { const q = pilih([4, 5, 10, 20]), p = acak(1, q - 1), persen = ya(0.6);
+      return isian(`Bagian yang <b>diarsir</b> jika dinyatakan dalam ${persen ? "persen" : "bentuk desimal"} adalah …`, persen ? p * 100 / q : p / q,
+        { satuan: persen ? "%" : undefined, gambar: svgPecahan(p, q, "batang"), petunjuk: "Tulis dulu sebagai pecahan, lalu ubah penyebutnya menjadi 100.", bahas: `${p} dari ${q} bagian diarsir = ${pc(p, q)} = ${pc(p * 100 / q, 100)} = ${desTulis(p / q)} = ${fmt(p * 100 / q)}%.` }); },
+    () => { const x = nama(), t = pilih([20, 25, 50]), b = acak(Math.ceil(t / 3), t - 1);
+      const [awal, akhir] = pilih([[`${x} mengerjakan ${t} soal latihan dan menjawab ${b} soal dengan benar.`, "soal yang dijawab benar"], [`Dalam latihan basket, ${x} melempar bola ${t} kali dan ${b} lemparan masuk ke ring.`, "lemparan yang masuk"],
+        [`${x} menanam ${t} bibit cabai. Setelah seminggu, ${b} bibit tumbuh.`, "bibit yang tumbuh"]]);
+      return isian(`${awal} Persentase ${akhir} adalah … %`, b * 100 / t, { satuan: "%", petunjuk: `Tulis sebagai pecahan ${b}/${t}, lalu ubah penyebutnya menjadi 100.`, bahas: `${pc(b, t)} = ${pc(b * 100 / t, 100)} = ${fmt(b * 100 / t)}%.` }); },
+    () => { const q = pilih([2, 4, 5, 8, 20, 25]), p = acak(1, q - 1), v = p / q, desimal = ya();
+      const benar = desimal ? desTulis(v) : fmt(v * 100) + "%";
+      const salah = desimal ? [`${p},${q}`, desTulis(v * 10), desTulis(v / 10), desTulis(bulat(1 - v))] : [`${p}${q}%`, fmt(v * 10) + "%", `${p * q}%`, fmt(bulat(100 - v * 100)) + "%"];
+      return pg(`Bilangan yang nilainya <b>sama dengan</b> ${pc(p, q)} adalah …`, benar, salah,
+        { petunjuk: desimal ? "Ubah penyebutnya menjadi 10, 100, atau 1.000." : "Kalikan pecahannya dengan 100%.", bahas: `${pc(p, q)} = ${desTulis(v)} = ${fmt(v * 100)}%.` }); },
   ],
   7: [
     () => { const p = pilih([10, 20, 25, 50, 75, 5, 15, 40, 60, 12]), n = pilih([20, 40, 60, 80, 100, 120, 160, 200, 240, 300, 400, 360, 500, 800]); if ((p * n) % 100) return isian(`25% dari 80 = …`, 20, { bahas: "80 : 4 = 20." });
       return isian(`${p}% dari ${n} = …`, p * n / 100, { petunjuk: `${p}% = ${pcS(p, 100)}`, bahas: `${pc(p, 100)} × ${n} = ${p * n / 100}.` }); },
+    () => { const n = pilih([20, 25, 40, 50, 80, 200]), pr = pilih([5, 10, 15, 20, 25, 30, 40, 45, 60, 75, 80].filter(v => (v * n) % 100 === 0)), a = pr * n / 100;
+      const [benda, warna] = pilih([["kelereng", "merah"], ["manik-manik", "biru"], ["balon", "kuning"], ["kancing", "hijau"]]);
+      const teks = ya() ? `${a} dari ${n} sama dengan … %` : `Di dalam kotak ada ${n} ${benda}. Sebanyak ${a} ${benda} berwarna ${warna}. Persentase ${benda} ${warna} adalah … %`;
+      return isian(teks, pr, { satuan: "%", petunjuk: `Tulis sebagai pecahan ${a}/${n}, lalu ubah ke perseratus.`, bahas: `${pc(a, n)} = ${pc(pr, 100)} = ${pr}%.` }); },
+    () => { const x = nama(), a = acak(105, 350) / 100, b = acak(25, 95) / 100, tambah = ya(), [benda, sat] = pilih([["pita", "m"], ["gula", "kg"], ["minyak goreng", "liter"], ["tali rafia", "m"], ["tepung", "kg"]]);
+      const h = bulat(tambah ? a + b : a - b, 2);
+      const teks = tambah ? `${x} mempunyai ${desTulis(a)} ${sat} ${benda}, lalu membeli lagi ${desTulis(b)} ${sat}. Jumlah ${benda} ${x} sekarang adalah … ${sat}.`
+        : `${x} mempunyai ${desTulis(a)} ${sat} ${benda}. Sebanyak ${desTulis(b)} ${sat} dipakai untuk membuat prakarya. Sisa ${benda} ${x} adalah … ${sat}.`;
+      return isian(teks, h, { satuan: sat, petunjuk: "Tulis bersusun dengan koma sejajar.", bahas: `${desTulis(a)} ${tambah ? "+" : "−"} ${desTulis(b)} = ${desTulis(h)} ${sat}.` }); },
+    () => { const a = pilih([0.2, 0.25, 0.4, 0.5, 0.6, 0.75, 1.2, 1.5, 2.5]), b = acak(3, 16), h = bulat(a * b), cerita = ya();
+      const [wadah, sat] = pilih([["botol", "liter"], ["bungkus", "kg"], ["kantong", "kg"]]);
+      const teks = cerita ? `Setiap ${wadah} berisi ${desTulis(a)} ${sat}. Isi ${b} ${wadah} seluruhnya adalah … ${sat}.` : `${desTulis(a)} × ${b} = …`;
+      return isian(teks, h, { satuan: cerita ? sat : undefined, petunjuk: `Kalikan tanpa koma dulu, lalu letakkan koma sesuai banyak angka desimalnya.`, bahas: `${desTulis(a)} × ${b} = ${desTulis(h)}${cerita ? " " + sat : ""}.` }); },
   ],
   8: [
     () => { const n = pilih([20, 25, 30, 32, 36, 40]), pr = pilih([10, 20, 25, 30, 40, 50, 60, 75]), ok = (n * pr) % 100 === 0, k = ok ? n * pr / 100 : null; if (!ok) return isian(`Dari 40 siswa, 25% suka melukis. Banyak siswa yang tidak suka melukis adalah …`, 30, { bahas: "25% × 40 = 10, 40 − 10 = 30." });
@@ -493,6 +841,23 @@ daftarMisi("bil", "b6", "Pecahan ↔ desimal ↔ persen", "💯", {
       return bs(`Tentukan Benar atau Salah.`, [
         { t: `${pc(p, q)} = ${desTulis(v)}`, b: true }, { t: `${pc(p, q)} = ${fmt(v * 100)}%`, b: true },
         { t: `${desTulis(v)} = ${fmt(v * 10)}%`, b: v * 10 === v * 100 }, { t: `${fmt(v * 100)}% lebih dari ${pc(1, 2)}`, b: v > 0.5 }], { bahas: `${pc(p, q)} = ${desTulis(v)} = ${fmt(v * 100)}%.` }); },
+    () => { const x = nama(), pr = pilih([10, 20, 25, 40, 50, 60, 75]), dasar = 100 / fpb(pr, 100), T = dasar * acak(Math.ceil(40 / dasar), Math.floor(400 / dasar)), a = T * pr / 100;
+      const [teks, sat] = pilih([[`${x} sudah membaca ${pr}% halaman sebuah buku, yaitu ${a} halaman. Tebal buku itu adalah … halaman.`, "halaman"],
+        [`Sebanyak ${pr}% siswa kelas 6 ikut lomba gerak jalan, yaitu ${a} siswa. Banyak siswa kelas 6 seluruhnya adalah … siswa.`, "siswa"],
+        [`${x} sudah menabung ${rp(a * 10000)}. Jumlah itu baru ${pr}% dari harga sepeda yang ingin dibelinya. Harga sepeda itu adalah Rp …`, null]]);
+      const tl = v => (sat ? `${fmt(v)} ${sat}` : rp(v * 10000));
+      return isian(teks, sat ? T : T * 10000, { satuan: sat || undefined, petunjuk: `${pr}% = ${pcS(pr, 100)} bagian. Seluruhnya = 100%.`,
+        bahas: `${pr}% (= ${pcS(pr, 100)} bagian) sama dengan ${tl(a)}. Seluruhnya (100%) = ${tl(a)} × 100 : ${pr} = ${tl(T)}.` }); },
+    () => { const b = pilih(["sepatu", "tas sekolah", "jaket", "sepeda", "raket"]); let hA, hB, dA, dB, A, B;
+      do { hA = acak(10, 40) * 10000; hB = hA + pilih([-1, 1]) * acak(1, 4) * 10000; dA = pilih([10, 20, 25, 30]); dB = pilih([10, 20, 25, 30, 40, 50].filter(v => v !== dA)); A = hA * (100 - dA) / 100; B = hB * (100 - dB) / 100; } while (A === B);
+      const murah = A < B ? "A" : "B", lain = murah === "A" ? "B" : "A", sel = Math.abs(A - B), tulis = (t, r) => `Toko ${t}, lebih murah ${rp(r)}`;
+      return pg(`Harga sebuah ${b} di Toko A ${rp(hA)} dengan diskon ${dA}%. Di Toko B harganya ${rp(hB)} dengan diskon ${dB}%. Toko yang harganya lebih murah setelah diskon dan selisih harganya adalah …`,
+        tulis(murah, sel), [tulis(lain, sel), tulis(murah, Math.abs(hA - hB)), tulis(lain, Math.abs(hA * dA - hB * dB) / 100), tulis(murah, sel + 5000), tulis(lain, sel + 5000)],
+        { petunjuk: "Hitung harga setelah diskon di setiap toko, lalu bandingkan.", bahas: `Toko A: ${rp(hA)} − ${dA}% = ${rp(A)}. Toko B: ${rp(hB)} − ${dB}% = ${rp(B)}. Toko ${murah} lebih murah ${rp(sel)}.` }); },
+    () => { const n = pilih([40, 80]), [k1, k2, k3] = ambil(["pramuka", "menari", "futsal", "paduan suara", "melukis"], 3), pr = pilih([10, 20, 25, 30, 40]), q = pilih([4, 5, 8]), p = pilih({ 4: [1], 5: [1, 2], 8: [1, 3] }[q]);
+      const a = n * pr / 100, b = n * p / q, s = n - a - b;
+      return isian(`Di sebuah sekolah ada ${n} siswa kelas 6. Sebanyak ${pr}% siswa ikut ${k1}, ${pc(p, q)} bagian ikut ${k2}, dan sisanya ikut ${k3}. Banyak siswa yang ikut ${k3} adalah …`, s,
+        { satuan: "siswa", petunjuk: "Hitung banyak siswa setiap kegiatan, lalu kurangkan dari jumlah seluruhnya.", bahas: `${k1}: ${pr}% × ${n} = ${a}. ${k2}: ${pc(p, q)} × ${n} = ${b}. ${k3}: ${n} − ${a} − ${b} = ${s} siswa.` }); },
   ],
   10: [
     () => { const h = acak(10, 50) * 10000, d1 = pilih([10, 20, 25, 50]), d2 = pilih([10, 20]); const s1 = h - h * d1 / 100, s2 = s1 - s1 * d2 / 100;
@@ -535,6 +900,20 @@ daftarMisi("bil", "b7", "Soal uang", "💰", {
       let s2 = s1 + pilih([-100, -50, 50, 100]); const H2 = s2 * k2; const m = s1 < s2 ? "A" : "B";
       return pgTetap(`Paket A: ${k1} ${b} seharga ${rp(H1)}.<br>Paket B: ${k2} ${b} seharga ${rp(H2)}.<br>Paket yang harga per buahnya <b>lebih murah</b> adalah …`, ["Paket A", "Paket B", "Sama saja"], "Paket " + m,
         { petunjuk: "Hitung harga 1 buah untuk setiap paket.", bahas: `Paket A: ${rp(s1)} per buah. Paket B: ${rp(s2)} per buah. Lebih murah Paket ${m}.` }); },
+    () => { const a = pilih(BARANG), h = hargaAcak(a), U = pilih([20000, 25000, 30000, 50000]), n = Math.floor(U / h), x = nama();
+      return isian(`${x} mempunyai uang ${rp(U)}. Harga 1 ${a[0]} ${rp(h)}. Paling banyak ${x} dapat membeli … ${a[0]}.`, n,
+        { petunjuk: "Bagi uangnya dengan harga satu barang. Sisa uang yang tidak cukup tidak dihitung.", bahas: `${rp(U)} : ${rp(h)} = ${n} sisa ${rp(U - n * h)}. Jadi paling banyak ${n} ${a[0]}.` }); },
+    () => { const x = nama(), B = pilih([1000, 2000, 2500, 3000, 5000]), n = acak(7, 30), awal = acak(0, 10) * 5000;
+      return isian(`Tabungan ${x} mula-mula ${rp(awal)}. Setiap hari ${x} menabung ${rp(B)}. Setelah ${n} hari, jumlah tabungan ${x} menjadi Rp …`, awal + n * B,
+        { petunjuk: "Hitung tabungan selama beberapa hari itu, lalu tambahkan tabungan mula-mula.", bahas: `${n} × ${rp(B)} = ${rp(n * B)}. ${rp(awal)} + ${rp(n * B)} = ${rp(awal + n * B)}.` }); },
+    () => { const [a, b] = ambil(BARANG, 2), ha = hargaAcak(a), hb = hargaAcak(b), t = ha + hb, U = pilih([20000, 30000, 50000].filter(v => v > t)), x = nama(), ok = U >= 2 * t;
+      const bJml = ya(), bSisa = ya();
+      return bs(`${x} mempunyai uang ${rp(U)}. Harga 1 ${a[0]} ${rp(ha)} dan harga 1 ${b[0]} ${rp(hb)}. Tentukan <b>Benar</b> atau <b>Salah</b>.`, [
+        { t: `Harga 1 ${a[0]} dan 1 ${b[0]} adalah ${rp(bJml ? t : t + pilih([-1000, 1000, 500]))}.`, b: bJml },
+        { t: `Uang ${x} cukup untuk membeli 2 ${a[0]} dan 2 ${b[0]}.`, b: ok },
+        { t: `Jika membeli 1 ${a[0]} dan 1 ${b[0]}, sisa uang ${x} ${rp(bSisa ? U - t : U - t + pilih([-500, 1000]))}.`, b: bSisa },
+        { t: `Harga 1 ${a[0]} lebih mahal daripada harga 1 ${b[0]}.`, b: ha > hb }],
+        { petunjuk: "Hitung jumlah harga dulu, lalu bandingkan dengan uangnya.", bahas: `1 ${a[0]} + 1 ${b[0]} = ${rp(t)}. 2 pasang = ${rp(2 * t)} → ${ok ? "cukup" : "tidak cukup"}. Sisa jika membeli sepasang: ${rp(U)} − ${rp(t)} = ${rp(U - t)}.` }); },
   ],
   7: [
     () => { const h = acak(4, 40) * 5000, d = pilih([10, 20, 25, 50]), b = pilih(["kaos", "topi", "tas sekolah", "buku cerita", "mainan robot"]);

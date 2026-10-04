@@ -101,7 +101,7 @@ function dekat(n, banyak = 3, utama = [], langkah) {
   const set = new Set(); const st = langkah || Math.max(1, Math.round(Math.abs(n) / 10));
   utama.forEach(x => { if (Number.isFinite(x) && x !== n && x >= 0 && set.size < banyak) set.add(bulat(x)); });
   let jaga = 0;
-  while (set.size < banyak && jaga++ < 200) { const c = bulat(n + (ya() ? 1 : -1) * st * acak(1, 4)); if (c !== n && c >= 0) set.add(c); }
+  while (set.size < banyak && jaga++ < 200) { const c = bulat(n + (ya() ? 1 : -1) * st * acak(1, 4)); if (c !== n && c > 0) set.add(c); }
   return [...set];
 }
 
@@ -159,13 +159,21 @@ function tulisNilai(s, p, q) {
   if (!s.satuan) return t;
   return /^[%°]$/.test(s.satuan) ? t + s.satuan : t + " " + s.satuan;
 }
-function pengecohAngka(n, banyak = 3, gMin = 0) {
+/* Nilai pengisi "…" di dalam kalimat: "Rp" atau satuan yang sudah tertulis di sekitar "…" tidak diulang
+   (mencegah "70 menit menit", "55°°", "Rp Rp…") */
+function isiTitik(s, p, q) {
+  const [depan, belakang = ""] = s.teks.replace(/<[^>]+>|&nbsp;/g, " ").split("…");
+  const sudah = /Rp\s*$/.test(depan) || (s.satuan && belakang.trimStart().startsWith(s.satuan));
+  return sudah ? (q !== undefined ? pcT(p, q) : fmt(p)) : tulisNilai(s, p, q);
+}
+/* Pengecoh selalu > 0 (tidak ada "0 cm"); maks membatasi nilai, mis. sudut ≤ 360° */
+function pengecohAngka(n, banyak = 3, gMin = 0, maks = Infinity) {
   const desimal = (String(n).split(".")[1] || "").length; let g = 10 ** -desimal;
   if (!desimal) { g = 1; while (n % (g * 10) === 0 && g * 10 < n) g *= 10; if (gMin && n % gMin === 0) g = Math.max(g, gMin); }
   const langkah = Math.max(g, Math.round(Math.abs(n) * 0.1 / g) * g), hasil = new Set();
   const calon = kocok([1, 2, 3, -1, -2, -3, 4, -4]).map(k => bulat(n + k * langkah));
-  if (Number.isInteger(n) && n >= 10 && ya(0.4)) calon.unshift(n * 10, n / 10);
-  for (const c of calon) { if (c >= 0 && c !== n && Number.isFinite(c) && (desimal || Number.isInteger(c))) hasil.add(c); if (hasil.size >= banyak) break; }
+  if (Number.isInteger(n) && n >= 10 && maks === Infinity && ya(0.4)) calon.unshift(n * 10, n / 10);
+  for (const c of calon) { if (c > 0 && c <= maks && c !== n && Number.isFinite(c) && (desimal || Number.isInteger(c))) hasil.add(c); if (hasil.size >= banyak) break; }
   return [...hasil];
 }
 function pengecohPecahan(p, q, banyak = 3) {
@@ -177,6 +185,8 @@ function pengecohPecahan(p, q, banyak = 3) {
   return [...hasil.values()];
 }
 const bisaDigabung = s => s.bentuk === "isian" && !s.gambar && (s.teks.match(/…/g) || []).length === 1 && s.teks.replace(/<[^>]+>/g, "").length <= 90;
+/* Pengecoh sudut: paling besar 360°, atau di bawah 180° untuk sudut segitiga */
+const batasPengecoh = s => (s.satuan === "°" ? Math.max(/segitiga/i.test(s.teks) ? 179 : 360, s.kunci.nilai) : Infinity);
 function bentukTKA(s, m, L) {
   const k = s.kunci;
   if (bisaDigabung(s) && ya(0.45)) {
@@ -184,16 +194,16 @@ function bentukTKA(s, m, L) {
     for (let i = 0; i < 40 && kumpulan.length < 4; i++) { const t = pilih(m.tingkat[L])(); if (bisaDigabung(t) && !kumpulan.some(x => x.teks === t.teks)) kumpulan.push(t); }
     if (kumpulan.length >= 3) {
       const butir = kumpulan.map(t => { const b = ya(), kt = t.kunci;
-        const nilai = b ? (kt.p !== undefined ? tulisNilai(t, kt.p, kt.q) : tulisNilai(t, kt.nilai))
-          : (kt.p !== undefined ? tulisNilai(t, ...pilih(pengecohPecahan(kt.p, kt.q, 1))) : tulisNilai(t, pengecohAngka(kt.nilai, 1)[0]));
+        const nilai = b ? (kt.p !== undefined ? isiTitik(t, kt.p, kt.q) : isiTitik(t, kt.nilai))
+          : (kt.p !== undefined ? isiTitik(t, ...pilih(pengecohPecahan(kt.p, kt.q, 1))) : isiTitik(t, pengecohAngka(kt.nilai, 1, 0, batasPengecoh(t))[0]));
         return { t: t.teks.replace(/<br>/g, " ").replace("…", `<b>${nilai}</b>`), b }; });
       if (L >= 8 && !butir.every(x => x.b) && butir.some(x => x.b)) return pgk("Pilih <b>semua</b> pernyataan yang benar.", butir, { bahas: kumpulan.map(t => t.bahas).filter(Boolean).join("<br>") });
       return bs("Tentukan <b>Benar</b> atau <b>Salah</b> untuk setiap pernyataan.", butir, { bahas: kumpulan.map(t => t.bahas).filter(Boolean).join("<br>") });
     }
   }
   const benar = k.p !== undefined ? tulisNilai(s, k.p, k.q) : tulisNilai(s, k.nilai);
-  const gUang = /Rps*…/.test(s.teks) && k.nilai >= 5000 ? 500 : 0;
-  const salah = k.p !== undefined ? pengecohPecahan(k.p, k.q).map(([a, b]) => tulisNilai(s, a, b)) : pengecohAngka(k.nilai, 3, gUang).map(v => tulisNilai(s, v));
+  const gUang = /Rp\s*…/.test(s.teks) && k.nilai >= 5000 ? 500 : 0;
+  const salah = k.p !== undefined ? pengecohPecahan(k.p, k.q).map(([a, b]) => tulisNilai(s, a, b)) : pengecohAngka(k.nilai, 3, gUang, batasPengecoh(s)).map(v => tulisNilai(s, v));
   if (salah.length < 3) return s;   // tidak cukup pengecoh yang masuk akal: biarkan isian
   return pg(s.teks, benar, salah, { gambar: s.gambar, petunjuk: s.petunjuk, bahas: s.bahas });
 }
