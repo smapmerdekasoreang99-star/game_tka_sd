@@ -159,7 +159,7 @@ input, select { font: inherit; }
 .tutup { width: 44px; height: 44px; border-radius: 50%; background: #fff; box-shadow: var(--bayang); font-size: 20px; color: var(--tinta-2); flex: none; }
 .titik-soal { display: flex; gap: 6px; justify-content: center; margin: 8px 0 4px; flex-wrap: wrap; }
 .titik-soal i { flex: 0 1 34px; min-width: 10px; height: 12px; border-radius: 999px; background: var(--garis); }
-.titik-soal i.benar { background: var(--hijau); } .titik-soal i.salah { background: var(--merah); } .titik-soal i.pulih { background: var(--emas); }
+.titik-soal i.benar { background: var(--hijau); } .titik-soal i.isi { background: var(--biru); } .titik-soal i.salah { background: var(--merah); } .titik-soal i.pulih { background: var(--emas); }
 .sisa-salah { text-align: center; font-size: 14px; font-weight: 700; color: var(--gelap-2); margin-bottom: 4px; } .sisa-salah.ada { color: var(--merah); } .titik-soal i.kini { background: var(--biru); animation: denyut 1.4s infinite; }
 .kartu-soal { position: relative; }
 .kartu-soal .nomor { font-weight: 800; color: var(--biru-tua); font-size: 14px; letter-spacing: .04em; }
@@ -467,3 +467,8 @@ canvas#konfeti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-e
 .ulas-tes.salah .ulas-jawab { background: var(--merah-muda); } .ulas-tes.benar .ulas-jawab { background: var(--hijau-muda); }
 .bahas-tes { margin-top: 8px; font-size: 15px; color: var(--tinta); }
 .ulas-tes .contoh-kunci { margin-top: 8px; }
+
+/* Pembahasan di akhir level (mode ujian) */
+.ulas-level { margin: 14px 0; text-align: left; }
+.ulas-level > summary { cursor: pointer; font-weight: 800; color: var(--biru-tua); padding: 8px 0; }
+.ulas-level .kartu { margin: 10px 0; }
