@@ -20,9 +20,14 @@ const bawaan = () => ({ v: 1, profil: null, tka: "", suara: true, koin: 0, api: 
 function muatData() { try { const x = JSON.parse(localStorage.getItem(KUNCI_SIMPAN)); if (x && x.v === 1) return Object.assign(bawaan(), x); } catch (e) { /* kosong */ } return bawaan(); }
 let S = muatData();
 /* Aturan level dari halaman Orang Tua: jumlah soal, batas kesalahan, ulangi nomor yang salah, dan mode ujian
-   (mode ujian: tanpa tanda benar/salah dan tanpa pengulangan; hasil dan pembahasan baru tampil di akhir level) */
-const atur = () => { const a = S.atur || {}, soal = PILIHAN_SOAL.includes(+a.soal) ? +a.soal : 5;
-  return { soal, toleransi: Math.max(0, Math.min(TOLERANSI_MAKS, soal - 1, Number.isInteger(+a.toleransi) ? +a.toleransi : 1)), ulang: a.ulang !== false, ujian: a.ujian === true }; };
+   (mode ujian: tanpa tanda benar/salah dan tanpa pengulangan; hasil dan pembahasan baru tampil di akhir level).
+   Batas kesalahan terpisah per mode (5 Okt 2026): S.atur.toleransi untuk mode belajar (lewat batas = ulang dari
+   nomor 1), S.atur.toleransiUjian untuk mode ujian (lewat batas = belum lulus); data lama tanpa toleransiUjian
+   memakai nilai toleransi yang sama. atur().toleransi = batas mode yang sedang aktif. */
+const atur = () => { const a = S.atur || {}, soal = PILIHAN_SOAL.includes(+a.soal) ? +a.soal : 5,
+    batas = (x, cad) => Math.max(0, Math.min(TOLERANSI_MAKS, soal - 1, Number.isInteger(+x) ? +x : cad)),
+    tolBelajar = batas(a.toleransi, 1), tolUjian = batas(a.toleransiUjian, tolBelajar), ujian = a.ujian === true;
+  return { soal, tolBelajar, tolUjian, toleransi: ujian ? tolUjian : tolBelajar, ulang: a.ulang !== false, ujian }; };
 let gagalSimpan = false;
 function simpanData(jadwal = true) { try { localStorage.setItem(KUNCI_SIMPAN, JSON.stringify(S)); gagalSimpan = false; if (jadwal && typeof jadwalSinkron === "function") jadwalSinkron(); } catch (e) { gagalSimpan = true; tampilPesan("⚠️ Kemajuan belum bisa disimpan di perangkat ini."); } }
 /* Muat ulang dari penyimpanan supaya tab/halaman yang lama terbuka memakai kemajuan terbaru
@@ -476,14 +481,16 @@ function contohHtml(s) {
     <div class="teks-soal">${s.teks}</div>${s.gambar ? `<div class="wadah-gambar">${s.gambar}</div>` : ""}${opsi}<div class="contoh-kunci"><b>Kunci:</b><div>${kunci}</div></div></div>`;
 }
 
+const pilihanTol = pilih => Array.from({ length: TOLERANSI_MAKS + 1 }, (_, i) => `<option value="${i}" ${i === pilih ? "selected" : ""}>${i ? i + "× salah" : "Tanpa salah"}</option>`).join("");
 function ortuAtur(el) {
   el.innerHTML = `<div class="kartu"><h3>Profil &amp; aturan level</h3>
       <div class="baris-set"><label for="o-nama"><b>Nama anak</b></label><input id="o-nama" class="isian-teks" style="max-width:220px;min-height:44px" maxlength="20" value="${esc(S.profil.nama)}"></div>
       <div class="baris-set"><b>Teman petualangan</b><select id="o-av" class="isian-teks" style="max-width:120px;min-height:44px;font-size:24px">${AVATAR.map(a => `<option ${a === S.profil.avatar ? "selected" : ""}>${a}</option>`).join("")}</select></div>
       <div class="baris-set"><label for="o-tka"><b>Tanggal TKA</b><div class="ket">Untuk hitung mundur di beranda</div></label><input id="o-tka" type="date" class="isian-teks" style="max-width:200px;min-height:44px" value="${S.tka}"></div>
       <div class="baris-set"><label for="o-soal"><b>Jumlah soal per level</b></label><select id="o-soal" class="isian-teks" style="max-width:130px;min-height:44px">${PILIHAN_SOAL.map(n => `<option value="${n}" ${n === atur().soal ? "selected" : ""}>${n} soal</option>`).join("")}</select></div>
-      <div class="baris-set"><label for="o-tol"><b>Toleransi kesalahan</b><div class="ket">Mode belajar: lewat batas, level diulang dari nomor 1. Mode ujian: lewat batas, level belum lulus</div></label><select id="o-tol" class="isian-teks" style="max-width:160px;min-height:44px">${Array.from({ length: TOLERANSI_MAKS + 1 }, (_, i) => `<option value="${i}" ${i === atur().toleransi ? "selected" : ""}>${i ? i + "× salah" : "Tanpa salah"}</option>`).join("")}</select></div>
       <div class="baris-set"><span><b>Mode level</b><div class="ket">Ujian: tanpa tanda benar/salah dan tidak diulang, terus sampai selesai; nilai dan pembahasan di akhir level</div></span><button class="tbl tbl-kecil ${atur().ujian ? "tbl-biru" : "tbl-putih"}" id="o-ujian" aria-pressed="${atur().ujian}">${atur().ujian ? "📝 Ujian" : "📖 Belajar"}</button></div>
+      <div class="baris-set" id="o-tol-baris"${atur().ujian ? ' style="opacity:.5"' : ""}><label for="o-tol"><b>Toleransi kesalahan mode belajar</b><div class="ket">Lewat batas, level diulang dari nomor 1</div></label><select id="o-tol" class="isian-teks" style="max-width:160px;min-height:44px">${pilihanTol(atur().tolBelajar)}</select></div>
+      <div class="baris-set" id="o-tolu-baris"${atur().ujian ? "" : ' style="opacity:.5"'}><label for="o-tolu"><b>Toleransi kesalahan mode ujian</b><div class="ket">Lewat batas, level belum lulus</div></label><select id="o-tolu" class="isian-teks" style="max-width:160px;min-height:44px">${pilihanTol(atur().tolUjian)}</select></div>
       <div class="baris-set" id="o-ulang-baris"${atur().ujian ? ' style="opacity:.5"' : ""}><span><b>Ulangi nomor yang salah</b><div class="ket">Anak mengerjakan soal serupa di nomor itu sampai benar (hanya mode belajar)</div></span><button class="tbl tbl-kecil ${atur().ulang ? "tbl-hijau" : "tbl-putih"}" id="o-ulang" aria-pressed="${atur().ulang}">${atur().ulang ? "✅ Nyala" : "⏭️ Mati"}</button></div>
       <div class="baris-set"><b>Suara</b><button class="tbl tbl-kecil ${S.suara ? "tbl-hijau" : "tbl-putih"}" id="o-suara">${S.suara ? "🔊 Nyala" : "🔇 Mati"}</button></div>
       <button class="tbl tbl-biru tbl-lebar" id="o-simpan" style="margin-top:12px">Simpan pengaturan</button></div>
@@ -495,11 +502,13 @@ function ortuAtur(el) {
   pasangKartuSinkron($("#kartu-sinkron"));
   $("#o-suara").addEventListener("click", e => { S.suara = !S.suara; e.target.textContent = S.suara ? "🔊 Nyala" : "🔇 Mati"; e.target.className = "tbl tbl-kecil " + (S.suara ? "tbl-hijau" : "tbl-putih"); simpanData(); bunyi.klik(); });
   let ulang = atur().ulang, ujian = atur().ujian;
-  $("#o-ujian").addEventListener("click", e => { ujian = !ujian; e.target.textContent = ujian ? "📝 Ujian" : "📖 Belajar"; e.target.className = "tbl tbl-kecil " + (ujian ? "tbl-biru" : "tbl-putih"); e.target.setAttribute("aria-pressed", ujian); $("#o-ulang-baris").style.opacity = ujian ? ".5" : ""; bunyi.klik(); });
+  $("#o-ujian").addEventListener("click", e => { ujian = !ujian; e.target.textContent = ujian ? "📝 Ujian" : "📖 Belajar"; e.target.className = "tbl tbl-kecil " + (ujian ? "tbl-biru" : "tbl-putih"); e.target.setAttribute("aria-pressed", ujian); ["#o-ulang-baris", "#o-tol-baris"].forEach(q => $(q).style.opacity = ujian ? ".5" : ""); $("#o-tolu-baris").style.opacity = ujian ? "" : ".5"; bunyi.klik(); });
   $("#o-ulang").addEventListener("click", e => { ulang = !ulang; e.target.textContent = ulang ? "✅ Nyala" : "⏭️ Mati"; e.target.className = "tbl tbl-kecil " + (ulang ? "tbl-hijau" : "tbl-putih"); e.target.setAttribute("aria-pressed", ulang); bunyi.klik(); });
   $("#o-simpan").addEventListener("click", () => { const n = $("#o-nama").value.trim(); if (!n) return tampilPesan("Nama tidak boleh kosong.");
-    const soal = +$("#o-soal").value, tol = +$("#o-tol").value; if (tol >= soal) return tampilPesan("Toleransi harus lebih kecil dari jumlah soal.");
-    S.profil.nama = n; S.profil.avatar = $("#o-av").value; S.tka = $("#o-tka").value || ""; S.atur = { soal, toleransi: tol, ulang, ujian }; S.waktu = { ...(S.waktu || {}), atur: Date.now() }; simpanData(); pasangKepala(); tampilPesan("✅ Pengaturan disimpan"); });
+    const soal = +$("#o-soal").value, tol = +$("#o-tol").value, tolU = +$("#o-tolu").value;
+    if (tol >= soal) return tampilPesan("Toleransi mode belajar harus lebih kecil dari jumlah soal.");
+    if (tolU >= soal) return tampilPesan("Toleransi mode ujian harus lebih kecil dari jumlah soal.");
+    S.profil.nama = n; S.profil.avatar = $("#o-av").value; S.tka = $("#o-tka").value || ""; S.atur = { soal, toleransi: tol, toleransiUjian: tolU, ulang, ujian }; S.waktu = { ...(S.waktu || {}), atur: Date.now() }; simpanData(); pasangKepala(); tampilPesan("✅ Pengaturan disimpan"); });
   $("#o-unduh").addEventListener("click", async () => { const nm = `petualangan-tka-${S.profil.nama.replace(/\W+/g, "-").toLowerCase()}-${hariIni()}.json`; try { await simpanBerkas(JSON.stringify(S), nm, "application/json"); tampilPesan(pesanSimpan("diunduh", nm), 4000); } catch (e) { tampilPesan("Unduhan gagal. Jika memakai VPN atau ekstensi peramban, matikan dulu lalu coba lagi.", 5000); } });
   $("#o-pulih").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const x = JSON.parse(r.result); if (x.v !== 1 || !x.profil) throw 0;
       dialog(`<div style="font-size:48px">⬆️</div><h2>Pulihkan cadangan?</h2><p class="ket">Kemajuan <b>${esc(x.profil.nama)}</b> akan menggantikan kemajuan di perangkat ini.</p>`, [["Ya, pulihkan", "tbl-utama", () => { S = Object.assign(bawaan(), x); simpanData(); tampilPesan("✅ Cadangan dipulihkan"); tampil("beranda"); }], ["Batal", "tbl-putih", null]]);
