@@ -111,7 +111,7 @@ function pasangKepala(kembali, arg) {
 function pasangNav(aktif) { nav.hidden = !aktif; nav.querySelectorAll("button").forEach(b => { if (b.dataset.ke === aktif) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }); }
 function tampil(nama_, arg) {
   if (nama_ !== "sambut") segarkanData();
-  if (nama_ === "ortu" && !izinOrtu) return mintaPin();
+  if (nama_ === "ortu" && !izinOrtu && S.peran !== "ortu") return mintaPin();   // PIN hanya di HP anak; HP orang tua langsung masuk
   izinOrtu = false; layarKini = nama_; argKini = arg; window.scrollTo(0, 0);
   ({ sambut: lSambut, beranda: lBeranda, pulau: lPulau, jalur: lJalur, postes: lPosTes, piala: lPiala, ortu: lOrtu }[nama_])(arg);
 }
@@ -515,6 +515,6 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 
 /* ================= Mulai ================= */
 tampil(S.profil ? "beranda" : "sambut");
-if (S.profil && S.peran === "ortu") tampil("ortu");   // HP orang tua langsung ke halaman Orang Tua (tetap dengan PIN)
+if (S.profil && S.peran === "ortu") tampil("ortu");   // HP orang tua langsung ke halaman Orang Tua (tanpa PIN)
 cekTesTertunda();   // Pos Tes yang belum dikumpulkan saat aplikasi ditutup
 setTimeout(() => sinkronkan(), 800);
