@@ -658,7 +658,7 @@ daftarMisi("bil", "b5", "Pecahan", "🍕", {
       return isianPc(`Di sebuah kelas ada ${n} siswa. Sebanyak ${a} siswa ${ciri}. Bagian siswa yang ${ciri} dalam pecahan <b>paling sederhana</b> adalah …`, a, n,
         { petunjuk: `Tulis ${a}/${n}, lalu sederhanakan.`, bahas: `${pc(a, n)} dibagi FPB ${fpb(a, n)} = ${pcS(a, n)}.` }); },
     () => { const q = acak(2, 9), w = acak(1, 5), s = acak(1, q - 1), p = w * q + s;
-      return isianPc(`Ubah ${pc(p, q)} menjadi pecahan campuran.`, p, q, { petunjuk: `${p} : ${q} = … sisa … . Hasil bagi jadi bilangan bulat, sisanya jadi pembilang. Ketik dengan spasi, misalnya 2 1/3.`, bahas: `${p} : ${q} = ${w} sisa ${s}, jadi ${pc(p, q)} = ${pcT(p, q)}.` }); },
+      return isianPc(`Ubah ${pc(p, q)} menjadi pecahan campuran.`, p, q, { petunjuk: `${p} : ${q} = … sisa … . Hasil bagi jadi bilangan bulat, sisanya jadi pembilang. Ketik dengan spasi, misalnya 2 1/3.`, campuran: true, bahas: `${p} : ${q} = ${w} sisa ${s}, jadi ${pc(p, q)} = ${pcT(p, q)}.` }); },
     () => { const q = acak(2, 9), w = acak(1, 5), s = acak(1, q - 1);
       return isian(`${w}&nbsp;${pc(s, q)} = ${pc("□", q)}<br>Nilai □ adalah …`, w * q + s, { petunjuk: "Kalikan bilangan bulat dengan penyebut, lalu tambah pembilangnya.", bahas: `${w} × ${q} + ${s} = ${w * q + s}, jadi ${w}&nbsp;${pc(s, q)} = ${pc(w * q + s, q)}.` }); },
     () => { const q = pilih([4, 6, 8, 9, 10, 12]), p = pilih([...Array(q - 1).keys()].map(i => i + 1).filter(v => fpb(q - v, q) > 1));
@@ -678,7 +678,7 @@ daftarMisi("bil", "b5", "Pecahan", "🍕", {
     () => { const q = acak(2, 8), n = q * acak(2, 10), [bnd, sat] = pilih([["kelereng", "butir"], ["siswa", "siswa"], ["permen", "buah"], ["telur", "butir"]]);
       return isian(`${pc(1, q)} dari ${n} ${bnd} adalah … ${sat}.`, n / q, { satuan: sat, petunjuk: `${pc(1, q)} dari ${n} = ${n} : ${q}.`, bahas: `${n} : ${q} = ${n / q} ${sat}.` }); },
     () => { const q = acak(3, 9), a = acak(2, q - 1), b = acak(q - a + 1, q - 1);
-      return isianPc(`${pc(a, q)} + ${pc(b, q)} = … (tulis sebagai pecahan campuran)`, a + b, q, { petunjuk: "Jumlahkan pembilangnya. Jika pembilang lebih dari penyebut, ubah ke pecahan campuran. Ketik misalnya 1 2/5.", bahas: `${pc(a, q)} + ${pc(b, q)} = ${pc(a + b, q)} = ${pcS(a + b, q)}.` }); },
+      return isianPc(`${pc(a, q)} + ${pc(b, q)} = … (tulis sebagai pecahan campuran)`, a + b, q, { petunjuk: "Jumlahkan pembilangnya. Jika pembilang lebih dari penyebut, ubah ke pecahan campuran. Ketik misalnya 1 2/5.", campuran: true, bahas: `${pc(a, q)} + ${pc(b, q)} = ${pc(a + b, q)} = ${pcS(a + b, q)}.` }); },
   ],
   5: [
     () => { const a = pcAcak(8), b = pcAcak(8), plus = ya() || a[0] / a[1] < b[0] / b[1] + 1e-9 ? true : false; const h = plus ? pTambah(a, b) : pKurang(a, b);
@@ -760,7 +760,7 @@ daftarMisi("bil", "b6", "Pecahan ↔ desimal ↔ persen", "💯", {
     () => { const p = acak(1, 19) * 5, [ktg, a, b] = pilih([["siswa", "naik sepeda ke sekolah", "berjalan kaki"], ["peserta", "memilih lomba lari", "memilih lomba renang"], ["penonton", "duduk di tribun timur", "duduk di tribun barat"]]);
       return isian(`Sebanyak ${p}% ${ktg} ${a}, sisanya ${b}. Persentase ${ktg} yang ${b} adalah … %`, 100 - p, { satuan: "%", petunjuk: "Seluruhnya = 100%.", bahas: `100% − ${p}% = ${100 - p}%.` }); },
     () => { const w = acak(1, 9), p = pilih([2, 4, 5, 6, 8]);
-      return isianPc(`${w},${p} dalam bentuk pecahan campuran paling sederhana adalah …`, w * 10 + p, 10, { petunjuk: `${w},${p} = ${w}&nbsp;${pc(p, 10)}, lalu sederhanakan pecahannya. Ketik misalnya 2 1/2.`, bahas: `${w},${p} = ${w}&nbsp;${pc(p, 10)} = ${pcS(w * 10 + p, 10)}.` }); },
+      return isianPc(`${w},${p} dalam bentuk pecahan campuran paling sederhana adalah …`, w * 10 + p, 10, { petunjuk: `${w},${p} = ${w}&nbsp;${pc(p, 10)}, lalu sederhanakan pecahannya. Ketik misalnya 2 1/2.`, campuran: true, bahas: `${w},${p} = ${w}&nbsp;${pc(p, 10)} = ${pcS(w * 10 + p, 10)}.` }); },
     () => { const a = acak(11, 60), b = acak(11, 99 - a); return isian(`${desTulis(a / 100)} + ${desTulis(b / 100)} = …`, (a + b) / 100, { petunjuk: "Tulis bersusun dengan koma sejajar.", bahas: `${desTulis(a / 100)} + ${desTulis(b / 100)} = ${desTulis((a + b) / 100)}.` }); },
   ],
   4: [

@@ -213,7 +213,7 @@ function bacaJawab(t) {
   let s = String(t || "").trim().replace(/\s+/g, " ");
   if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g, "");   // 1.250.000
   let m = s.match(/^(\d+) (\d+)\/(\d+)$/);
-  if (m) { const w = +m[1], p = +m[2], q = +m[3]; if (!q) return null; return { nilai: (w * q + p) / q, p: w * q + p, q, sederhana: fpb(p, q) === 1 && p < q }; }
+  if (m) { const w = +m[1], p = +m[2], q = +m[3]; if (!q) return null; return { nilai: (w * q + p) / q, p: w * q + p, q, sederhana: fpb(p, q) === 1 && p < q, campuran: true }; }
   m = s.match(/^(\d+)\/(\d+)$/);
   if (m) { const p = +m[1], q = +m[2]; if (!q) return null; return { nilai: p / q, p, q, sederhana: fpb(p, q) === 1 && q !== 1 }; }
   if (/^\d+(,\d+)?$/.test(s) || /^\d+\.\d+$/.test(s)) return { nilai: parseFloat(s.replace(",", ".")) };
@@ -229,6 +229,8 @@ function periksa(soal, jawab) {
   if (k.p !== undefined) {
     const sama = Math.abs(j.nilai - k.p / k.q) < 1e-9;
     if (!sama) return { benar: false };
+    // 6/5 dan 1 1/5 sama-sama benar, KECUALI soal meminta pecahan campuran (soal.campuran, 6 Okt 2026)
+    if (soal.campuran && k.p % k.q !== 0 && !j.campuran) return { benar: false, catatan: "Nilainya sudah benar, tetapi soal ini meminta <b>pecahan campuran</b>. Ketik misalnya 1 1/5." };
     if (k.sederhana && k.q !== 1 && j.q !== undefined && !j.sederhana) return { benar: false, catatan: "Nilainya sudah benar, tetapi belum bentuk paling sederhana." };
     if (k.sederhana && k.q !== 1 && j.q === undefined && !Number.isInteger(j.nilai)) return { benar: true };
     return { benar: true };
